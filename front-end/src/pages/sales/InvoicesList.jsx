@@ -14,7 +14,7 @@ export default function InvoicesList() {
   useEffect(() => {
     const fetchInvoices = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/sales/list");
+        const res = await axios.get("http://localhost:5003/api/sales/list");
         setInvoices(res.data);
       } catch (err) {
         console.error("Error fetching invoices:", err);

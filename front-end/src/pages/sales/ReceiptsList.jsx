@@ -14,7 +14,7 @@ export default function ReceiptsList() {
 
   useEffect(() => {
     axios
-      .get("http://localhost:5000/api/receipts")
+      .get("http://localhost:5003/api/receipts")
       .then((res) => setReceipts(res.data))
       .catch((err) => console.error("Error fetching receipts:", err))
       .finally(() => setLoading(false));

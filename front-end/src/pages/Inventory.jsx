@@ -7,7 +7,7 @@ export default function Inventory() {
   const [editingId, setEditingId] = useState(null);
 
   const fetchItems = async () => {
-    const res = await axios.get("http://localhost:5000/api/inventory");
+    const res = await axios.get("http://localhost:5003/api/inventory");
     setItems(res.data);
   };
 
@@ -17,9 +17,9 @@ export default function Inventory() {
 
   const handleSubmit = async () => {
     if (editingId) {
-      await axios.put(`http://localhost:5000/api/inventory/${editingId}`, form);
+      await axios.put(`http://localhost:5003/api/inventory/${editingId}`, form);
     } else {
-      await axios.post("http://localhost:5000/api/inventory", form);
+      await axios.post("http://localhost:5003/api/inventory", form);
     }
     setForm({ name: "", unit_price: "", stock: "" });
     setEditingId(null);
@@ -32,7 +32,7 @@ export default function Inventory() {
   };
 
   const handleDelete = async (id) => {
-    await axios.delete(`http://localhost:5000/api/inventory/${id}`);
+    await axios.delete(`http://localhost:5003/api/inventory/${id}`);
     fetchItems();
   };
 

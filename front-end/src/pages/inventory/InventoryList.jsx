@@ -46,7 +46,7 @@ export default function InventoryList() {
     setDeleting(true);
     try {
       const token = localStorage.getItem("token");
-      await axios.delete(`http://localhost:5000/api/inventory/${deleteId}`, {
+      await axios.delete(`http://localhost:5003/api/inventory/${deleteId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setDeleteId(null);

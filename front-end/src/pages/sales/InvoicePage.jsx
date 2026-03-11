@@ -19,7 +19,7 @@ export default function InvoicePage() {
   useEffect(() => {
     const fetchInvoice = async () => {
       try {
-        const res = await axios.get(`http://localhost:5000/api/sales/receipt/${id}`);
+        const res = await axios.get(`http://localhost:5003/api/sales/receipt/${id}`);
         setInvoice(res.data.sale);
         setItems(res.data.items);
       } catch (err) {
@@ -41,7 +41,7 @@ export default function InvoicePage() {
 
   const handleConvertToReceipt = async () => {
     try {
-      await axios.post(`http://localhost:5000/api/sales/${invoice.id}/convert-to-receipt`);
+      await axios.post(`http://localhost:5003/api/sales/${invoice.id}/convert-to-receipt`);
       alert("Receipt generated successfully!");
       navigate("/sales/receipts"); // Redirect to receipts list
     } catch (err) {

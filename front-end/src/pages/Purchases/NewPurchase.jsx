@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 
-const SUPPLIER_API = "http://localhost:5000/api/suppliers";
-const INVENTORY_API = "http://localhost:5000/api/inventory/list";
-const PURCHASE_API = "http://localhost:5000/api/purchases";
+const SUPPLIER_API = "http://localhost:5003/api/suppliers";
+const INVENTORY_API = "http://localhost:5003/api/inventory/list";
+const PURCHASE_API = "http://localhost:5003/api/purchases";
 
 export default function NewPurchase() {
   const [suppliers, setSuppliers] = useState([]);

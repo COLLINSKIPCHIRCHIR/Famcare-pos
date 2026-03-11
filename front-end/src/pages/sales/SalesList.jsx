@@ -16,7 +16,7 @@ export default function SalesList() {
   useEffect(() => {
     const fetchSales = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/sales/list");
+        const res = await axios.get("http://localhost:5003/api/sales/list");
         setSales(res.data);
       } catch (err) {
         setError("Failed to load sales.");

@@ -33,7 +33,7 @@ export default function CustomerAdd() {
       const token = localStorage.getItem("token");
 
       await axios.post(
-        "http://localhost:5000/api/customers/add",
+        "http://localhost:5003/api/customers/add",
         form,
         { headers: { Authorization: `Bearer ${token}` } }
       );

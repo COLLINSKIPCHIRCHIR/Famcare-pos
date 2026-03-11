@@ -6,7 +6,7 @@ export default function Customers() {
   const [form, setForm] = useState({ full_name: "", email: "", phone: "", address: "", date_of_birth: "" });
 
   const fetchClients = async () => {
-    const res = await axios.get("http://localhost:5000/clients");
+    const res = await axios.get("http://localhost:5003/clients");
     setClients(res.data);
   };
 
@@ -16,13 +16,13 @@ export default function Customers() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await axios.post("http://localhost:5000/clients", form);
+    await axios.post("http://localhost:5003/clients", form);
     setForm({ full_name: "", email: "", phone: "", address: "", date_of_birth: "" });
     fetchClients();
   };
 
   const handleDelete = async (id) => {
-    await axios.delete(`http://localhost:5000/clients/${id}`);
+    await axios.delete(`http://localhost:5003/clients/${id}`);
     fetchClients();
   };
 

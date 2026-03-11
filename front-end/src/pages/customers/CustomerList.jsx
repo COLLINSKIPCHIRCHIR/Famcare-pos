@@ -15,7 +15,7 @@ export default function CustomerList() {
       const token = localStorage.getItem("token");
 
       const res = await axios.get(
-        "http://localhost:5000/api/customers/list",
+        "http://localhost:5003/api/customers/list",
         {
           headers: { Authorization: `Bearer ${token}` },
         }

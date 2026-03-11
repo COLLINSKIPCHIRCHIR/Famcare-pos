@@ -20,11 +20,11 @@ export default function Sales() {
   const fetchData = async () => {
     try {
       // Get inventory products with stock > 0
-      const productRes = await axios.get("http://localhost:5000/api/inventory");
+      const productRes = await axios.get("http://localhost:5003/api/inventory");
       setProducts(productRes.data.filter((p) => p.stock > 0));
 
       // Get today's sales and summary
-      const salesRes = await axios.get("http://localhost:5000/api/sales/today");
+      const salesRes = await axios.get("http://localhost:5003/api/sales/today");
       setSummary(salesRes.data.summary);
       setRecentSales(salesRes.data.sales);
     } catch (err) {
@@ -41,7 +41,7 @@ export default function Sales() {
   useEffect(() => {
     const interval = setInterval(() => {
       fetchData();
-    }, 5000); // refresh every 5 seconds
+    }, 5003); // refresh every 5 seconds
 
     return () => clearInterval(interval); // cleanup on unmount
   }, []);
@@ -60,7 +60,7 @@ export default function Sales() {
     if (!selectedProduct) return;
 
     try {
-      const res = await axios.post("http://localhost:5000/api/sales", {
+      const res = await axios.post("http://localhost:5003/api/sales", {
         product_id: selectedProduct.id,
         quantity,
       });

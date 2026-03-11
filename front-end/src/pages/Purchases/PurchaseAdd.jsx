@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
-const BASE = "http://localhost:5000/api";
+const BASE = "http://localhost:5003/api";
 const SIZES = ["N/A", "Extra Small", "Small", "Medium", "Large", "Extra Large", "One Size"];
 
 export default function PurchaseAdd() {

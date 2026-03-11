@@ -37,7 +37,7 @@ export default function InventoryAdd() {
     try {
       const token = localStorage.getItem("token");
       await axios.post(
-        "http://localhost:5000/api/inventory/add",
+        "http://localhost:5003/api/inventory/add",
         {
           name: form.name,
           size: form.size,

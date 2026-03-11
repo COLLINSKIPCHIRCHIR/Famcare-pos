@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
-const API = "http://localhost:5000/api/purchases";
+const API = "http://localhost:5003/api/purchases";
 
 export default function PurchaseList() {
   const navigate = useNavigate();

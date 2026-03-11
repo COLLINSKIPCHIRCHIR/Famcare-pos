@@ -13,7 +13,7 @@ export default function ReceiptPage() {
   useEffect(() => {
     const fetchReceipt = async () => {
       try {
-        const res = await axios.get(`http://localhost:5000/api/receipts/${id}`);
+        const res = await axios.get(`http://localhost:5003/api/receipts/${id}`);
         setReceipt(res.data.receipt);
         setItems(res.data.items);
       } catch (err) {

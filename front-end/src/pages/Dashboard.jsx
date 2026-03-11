@@ -7,7 +7,7 @@ import {
   ResponsiveContainer, Cell
 } from "recharts";
 
-const BASE = "http://localhost:5000/api/dashboard";
+const BASE = "http://localhost:5003/api/dashboard";
 const BLUE_SHADES = ["#1e3a5f", "#1d4ed8", "#2563eb", "#3b82f6", "#60a5fa"];
 
 function StatCard({ label, value, sub, icon, bg }) {

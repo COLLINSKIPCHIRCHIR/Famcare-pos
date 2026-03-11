@@ -11,7 +11,7 @@ export default function StockMovements() {
 
   const fetchMovements = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/stock-movements");
+      const res = await axios.get("http://localhost:5003/api/stock-movements");
       setMovements(res.data);
     } catch (error) {
       console.error("Error fetching stock movements:", error);

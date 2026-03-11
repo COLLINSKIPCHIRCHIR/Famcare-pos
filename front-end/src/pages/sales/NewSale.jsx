@@ -18,8 +18,8 @@ export default function NewSale() {
     const fetchData = async () => {
       try {
         const [inv, cust] = await Promise.all([
-          axios.get("http://localhost:5000/api/inventory/list"),
-          axios.get("http://localhost:5000/api/customers/list"),
+          axios.get("http://localhost:5003/api/inventory/list"),
+          axios.get("http://localhost:5003/api/customers/list"),
         ]);
         setInventory(inv.data || []);
         setCustomers(cust.data || []);
@@ -124,7 +124,7 @@ export default function NewSale() {
 
     setLoading(true);
     try {
-      const res = await axios.post("http://localhost:5000/api/sales/complete", {
+      const res = await axios.post("http://localhost:5003/api/sales/complete", {
         cart,
         customer_id: customerId,
         payment_method: paymentMethod,
