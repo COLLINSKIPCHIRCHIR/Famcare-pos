@@ -3,6 +3,7 @@ import SignUp from "./pages/SignUp";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
+import AdminRoute from "./components/AdminRoute";
 import Layout from "./components/Layout";
 import ReceiptsList from "./pages/sales/ReceiptsList";
 import ReceiptPage from "./pages/sales/ReceiptPage";
@@ -29,6 +30,12 @@ import SuppliersList from "./pages/Suppliers/SupplierList";
 import PurchaseAdd from "./pages/Purchases/PurchaseAdd";
 import PurchaseList from "./pages/Purchases/PurchaseList";
 
+// ================= USER PAGES =================
+import CreateUser from "./pages/CreateUser";
+
+// ================= AUTH PAGES =================
+import ForgotPassword from "./pages/ForgotPassword";
+
 function App() {
   return (
     <Router>
@@ -37,6 +44,7 @@ function App() {
         <Route path="/" element={<Navigate to="/login" />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
 
         <Route
           path="/dashboard"
@@ -73,16 +81,30 @@ function App() {
         <Route path="/purchases/list" element={<ProtectedRoute><Layout><PurchaseList /></Layout></ProtectedRoute>} />
 
         {/* ================= STOCK MOVEMENTS ================= */}
-<Route
-  path="/stock/stockMovements"
-  element={
-    <ProtectedRoute>
-      <Layout>
-        <StockMovements />
-      </Layout>
-    </ProtectedRoute>
-  }
-/>
+        <Route
+          path="/stock/stockMovements"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <StockMovements />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* ================= ADMIN ONLY ================= */}
+        <Route
+          path="/users/create"
+          element={
+            <ProtectedRoute>
+              <AdminRoute>
+                <Layout>
+                  <CreateUser />
+                </Layout>
+              </AdminRoute>
+            </ProtectedRoute>
+          }
+        />
 
       </Routes>
     </Router>

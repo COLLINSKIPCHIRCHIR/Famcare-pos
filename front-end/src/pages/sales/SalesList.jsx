@@ -1,7 +1,9 @@
 // src/pages/sales/SalesList.jsx
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import API from "../../utils/api";
+
+const ROWS_PER_PAGE = 10;
 
 export default function SalesList() {
   const [sales, setSales] = useState([]);
@@ -11,25 +13,27 @@ export default function SalesList() {
   const [filterPayment, setFilterPayment] = useState("all");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchSales = async () => {
       try {
-        const res = await axios.get("http://localhost:5003/api/sales/list");
+        const res = await API.get("/sales/list");
         setSales(res.data);
       } catch (err) {
-        setError("Failed to load sales.");
+        setError("Failed to load sales records.");
         console.error(err);
       } finally {
         setLoading(false);
       }
     };
-
     fetchSales();
   }, []);
 
-  // Filter sales
+  // Reset to page 1 when filters change
+  useEffect(() => { setCurrentPage(1); }, [search, filterPayment, dateFrom, dateTo]);
+
   const filtered = sales.filter((sale) => {
     const q = search.toLowerCase();
     const matchesSearch =
@@ -53,148 +57,181 @@ export default function SalesList() {
     setDateTo("");
   };
 
-  const paymentBadgeColor = (method) => {
+  const getPaymentBadgeClass = (method) => {
     switch (method) {
-      case "cash": return { background: "#dcfce7", color: "#16a34a" };
-      case "mpesa": return { background: "#d1fae5", color: "#059669" };
-      case "card": return { background: "#dbeafe", color: "#2563eb" };
-      case "insurance": return { background: "#ede9fe", color: "#7c3aed" };
-      case "credit": return { background: "#fee2e2", color: "#ef4444" };
-      default: return { background: "#f3f4f6", color: "#6b7280" };
+      case "cash": return "bg-green-100 text-green-700";
+      case "mpesa": return "bg-emerald-100 text-emerald-800 border-emerald-200";
+      case "card": return "bg-blue-100 text-blue-700";
+      case "insurance": return "bg-purple-100 text-purple-700";
+      case "credit": return "bg-red-100 text-red-700";
+      default: return "bg-gray-100 text-gray-600";
     }
   };
 
-  if (loading) return <div className="p-6">Loading sales...</div>;
-  if (error) return <div className="p-6 text-red-500">{error}</div>;
+  // Pagination calculations
+  const totalPages = Math.ceil(filtered.length / ROWS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ROWS_PER_PAGE;
+  const paginated = filtered.slice(startIndex, startIndex + ROWS_PER_PAGE);
+
+  if (loading) return <div className="p-10 text-center text-gray-500 font-medium">Loading sales records...</div>;
+  if (error) return <div className="p-10 text-center text-red-500 font-bold">{error}</div>;
 
   return (
-    <div className="bg-white p-6 rounded shadow">
-      <h2 className="text-2xl font-bold mb-4">Sales List</h2>
+    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 max-w-6xl mx-auto">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold text-gray-800">Sales Records</h2>
+        <button
+          onClick={() => navigate("/sales/new")}
+          className="bg-blue-600 text-white px-5 py-2 rounded-lg font-bold text-sm hover:bg-blue-700 transition-colors"
+        >
+          + Create New Invoice
+        </button>
+      </div>
 
       {/* Search and Filter Bar */}
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 16 }}>
-
-        {/* Search */}
-        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+      <div className="flex flex-wrap gap-4 mb-8 bg-gray-50 p-4 rounded-lg items-center">
+        <div className="relative flex-1 min-w-[280px]">
           <input
             type="text"
-            placeholder="Search by customer or invoice no..."
+            placeholder="Search customer or invoice no..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            style={{ border: "1px solid #ddd", padding: "8px 12px", borderRadius: 6, width: 260, fontSize: 14 }}
+            className="w-full pl-4 pr-10 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
           />
           {search && (
-            <button onClick={() => setSearch("")} style={{ background: "none", border: "none", cursor: "pointer", color: "#aaa", fontSize: 16 }}>✕</button>
+            <button onClick={() => setSearch("")} className="absolute right-3 top-2 text-gray-400">✕</button>
           )}
         </div>
 
-        {/* Payment Method Filter */}
-        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-          {["all", "cash", "mpesa", "card", "insurance", "credit"].map((method) => (
-            <button
-              key={method}
-              onClick={() => setFilterPayment(method)}
-              style={{
-                padding: "8px 14px", borderRadius: 6, fontSize: 12, fontWeight: 600,
-                cursor: "pointer", border: "1px solid",
-                background: filterPayment === method ? "#2563eb" : "#fff",
-                color: filterPayment === method ? "#fff" : "#555",
-                borderColor: filterPayment === method ? "#2563eb" : "#ddd",
-                textTransform: "capitalize",
-              }}
-            >
-              {method === "all" ? "All Methods" : method}
-            </button>
-          ))}
-        </div>
-
-        {/* Date Range */}
-        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+        <div className="flex items-center gap-2">
           <input
             type="date"
             value={dateFrom}
             onChange={(e) => setDateFrom(e.target.value)}
-            style={{ border: "1px solid #ddd", padding: "8px 10px", borderRadius: 6, fontSize: 13 }}
+            className="border border-gray-200 p-2 rounded-lg text-xs"
           />
-          <span style={{ color: "#aaa", fontSize: 13 }}>to</span>
+          <span className="text-gray-400 text-xs font-bold">TO</span>
           <input
             type="date"
             value={dateTo}
             onChange={(e) => setDateTo(e.target.value)}
-            style={{ border: "1px solid #ddd", padding: "8px 10px", borderRadius: 6, fontSize: 13 }}
+            className="border border-gray-200 p-2 rounded-lg text-xs"
           />
         </div>
 
-        {/* Clear All */}
+        <div className="flex gap-2 flex-wrap">
+          {["all", "cash", "mpesa", "card", "insurance", "credit"].map((method) => (
+            <button
+              key={method}
+              onClick={() => setFilterPayment(method)}
+              className={`px-3 py-1.5 rounded-full text-[11px] font-black uppercase tracking-wider border transition-all ${
+                filterPayment === method
+                  ? "bg-gray-800 border-gray-800 text-white"
+                  : "bg-white border-gray-200 text-gray-500 hover:border-blue-400"
+              }`}
+            >
+              {method}
+            </button>
+          ))}
+        </div>
+
         {(search || filterPayment !== "all" || dateFrom || dateTo) && (
-          <button
-            onClick={clearFilters}
-            style={{ background: "#f4f4f4", border: "1px solid #ddd", borderRadius: 6, padding: "8px 14px", fontSize: 13, cursor: "pointer", color: "#555" }}
-          >
-            ✕ Clear All
+          <button onClick={clearFilters} className="text-xs text-red-500 font-bold hover:underline">
+            Reset Filters
           </button>
         )}
       </div>
 
       {sales.length === 0 ? (
-        <p className="text-gray-500">No sales recorded yet.</p>
+        <div className="text-center py-20 text-gray-400 italic">No sales have been recorded yet.</div>
       ) : filtered.length === 0 ? (
-        <p className="text-gray-500">No sales match your search or filter.</p>
+        <div className="text-center py-20 text-gray-400">No sales match your current search criteria.</div>
       ) : (
         <>
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-gray-100 text-gray-700">
-                <th className="p-3 border">#</th>
-                <th className="p-3 border">Invoice No</th>
-                <th className="p-3 border">Customer Name</th>
-                <th className="p-3 border">Total (KES)</th>
-                <th className="p-3 border">Payment Method</th>
-                <th className="p-3 border">Date</th>
-                <th className="p-3 border">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((sale, index) => (
-                <tr key={sale.id} className="hover:bg-gray-50">
-                  <td className="p-3 border">{index + 1}</td>
-                  <td className="p-3 border font-medium text-blue-600">
-                    {sale.invoice_number || `#${sale.id}`}
-                  </td>
-                  <td className="p-3 border">{sale.customer_name || "—"}</td>
-                  <td className="p-3 border font-semibold">
-                    KES {Number(sale.total_amount).toLocaleString()}
-                  </td>
-                  <td className="p-3 border">
-                    <span style={{
-                      ...paymentBadgeColor(sale.payment_method),
-                      padding: "3px 10px", borderRadius: 20, fontSize: 12, fontWeight: 700,
-                    }}>
-                      {sale.payment_method}
-                    </span>
-                  </td>
-                  <td className="p-3 border">
-                    {new Date(sale.created_at).toLocaleString()}
-                  </td>
-                  <td className="p-3 border">
-                    <button
-                      onClick={() => navigate(`/sales/invoice/${sale.id}`)}
-                      style={{
-                        background: "#eff6ff", color: "#2563eb", border: "1px solid #bfdbfe",
-                        borderRadius: 6, padding: "5px 12px", fontSize: 12,
-                        fontWeight: 600, cursor: "pointer",
-                      }}
-                    >
-                      👁 View
-                    </button>
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="border-b border-gray-100 text-gray-400 text-[11px] uppercase tracking-widest font-black">
+                  <th className="p-4">#</th>
+                  <th className="p-4">Invoice No</th>
+                  <th className="p-4">Customer Name</th>
+                  <th className="p-4">Total Amount</th>
+                  <th className="p-4 text-center">Payment</th>
+                  <th className="p-4">Timestamp</th>
+                  <th className="p-4 text-right">Action</th>
                 </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {paginated.map((sale, index) => (
+                  <tr key={sale.id} className="hover:bg-blue-50/20 transition-colors group">
+                    <td className="p-4 text-gray-300 text-xs font-bold">{startIndex + index + 1}</td>
+                    <td className="p-4 font-mono font-bold text-blue-600">
+                      {sale.invoice_number || `FCR/${sale.id}/2026`}
+                    </td>
+                    <td className="p-4 font-medium text-gray-700">
+                      {sale.customer_name || "Guest Customer"}
+                    </td>
+                    <td className="p-4 font-black text-gray-900">
+                      KES {Number(sale.total_amount).toLocaleString()}
+                    </td>
+                    <td className="p-4 text-center">
+                      <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase ${getPaymentBadgeClass(sale.payment_method)}`}>
+                        {sale.payment_method}
+                      </span>
+                    </td>
+                    <td className="p-4 text-xs text-gray-500">
+                      {new Date(sale.created_at).toLocaleDateString('en-GB')} <br/>
+                      <span className="text-[10px] text-gray-300 uppercase">{new Date(sale.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                    </td>
+                    <td className="p-4 text-right">
+                      <button
+                        onClick={() => navigate(`/sales/invoice/${sale.id}`)}
+                        className="bg-white border border-gray-200 text-gray-700 px-4 py-1.5 rounded-lg text-xs font-bold hover:bg-gray-800 hover:text-white hover:border-gray-800 transition-all shadow-sm"
+                      >
+                        View Invoice
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Pagination Bar */}
+          <div className="mt-6 pt-4 border-t border-gray-50 flex items-center justify-between">
+            <p className="text-[11px] text-gray-400 font-medium uppercase">
+              Displaying {startIndex + 1}–{Math.min(startIndex + ROWS_PER_PAGE, filtered.length)} of {filtered.length} records
+            </p>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-1 text-xs font-bold rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-blue-50 disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                ← Prev
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`px-3 py-1 text-xs font-bold rounded-lg border transition ${
+                    currentPage === page
+                      ? "bg-blue-600 text-white border-blue-600"
+                      : "bg-white text-gray-600 border-gray-200 hover:bg-blue-50"
+                  }`}
+                >
+                  {page}
+                </button>
               ))}
-            </tbody>
-          </table>
-          <p style={{ fontSize: 13, color: "#aaa", marginTop: 10 }}>
-            Showing {filtered.length} of {sales.length} sales
-          </p>
+              <button
+                onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="px-3 py-1 text-xs font-bold rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-blue-50 disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                Next →
+              </button>
+            </div>
+          </div>
         </>
       )}
     </div>

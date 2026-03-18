@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import API from "../../utils/api";
 
-const BASE = "http://localhost:5003/api";
-const SIZES = ["N/A", "Extra Small", "Small", "Medium", "Large", "Extra Large", "One Size"];
+const SIZES = ["N/A", "Extra Small", "Small", "Medium", "Large", "Extra Large", "One Size", "XXL", "XXXL"];
 
 export default function PurchaseAdd() {
   const navigate = useNavigate();
@@ -15,8 +14,20 @@ export default function PurchaseAdd() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    axios.get(`${BASE}/suppliers`).then((r) => setSuppliers(r.data));
-    axios.get(`${BASE}/inventory`).then((r) => setInventory(r.data));
+    const fetchData = async () => {
+      try {
+        const [suppRes, invRes] = await Promise.all([
+          API.get("/suppliers"),
+          API.get("/inventory/list")
+        ]);
+        setSuppliers(suppRes.data);
+        setInventory(invRes.data);
+      } catch (err) {
+        console.error("Initialization error:", err);
+        setError("Failed to load suppliers or inventory.");
+      }
+    };
+    fetchData();
   }, []);
 
   const addItem = () => setItems([...items, { product_id: "", size: "", quantity: 1, price: "", expiry_date: "" }]);
@@ -30,7 +41,7 @@ export default function PurchaseAdd() {
       if (found) {
         updated[i].price = found.buying_price || "";
         updated[i].size = found.size || "";
-        updated[i].expiry_date = "";  // always clear expiry so user enters new one
+        updated[i].expiry_date = ""; // always clear expiry so user enters new one
       }
     }
     setItems(updated);
@@ -56,7 +67,7 @@ export default function PurchaseAdd() {
     if (items.some((i) => !i.product_id || !i.price || !i.quantity)) return setError("Please fill in all item fields.");
     setLoading(true);
     try {
-      await axios.post(`${BASE}/purchases`, {
+      await API.post("/purchases", {
         supplier_id: supplierId,
         items: items.map((i) => ({
           product_id: parseInt(i.product_id),

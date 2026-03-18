@@ -1,4 +1,5 @@
 // server.js
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 
@@ -11,6 +12,7 @@ const receiptRoutes = require("./routes/receiptRoutes");
 const supplierRoutes = require("./routes/supplierRoutes");
 const stockMovementRoutes = require("./routes/stockMovementRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
+
 
 
 // Load purchaseRoutes safely
@@ -34,7 +36,7 @@ app.get("/", (req, res) => {
 });
 
 // API Routes
-app.use("/auth", authRoutes);
+app.use("/api/auth", authRoutes);
 app.use("/api/sales", salesRoutes);
 app.use("/api/inventory", inventoryRoutes);
 app.use("/api/customers", customerRoutes);
@@ -43,6 +45,7 @@ app.use("/api/suppliers", supplierRoutes);
 console.log("Suppliers registered at /api/suppliers");
 app.use("/api/stock-movements", stockMovementRoutes);
 app.use("/api/dashboard", dashboardRoutes);
+
 
 
 // Only register purchases route if it loaded successfully

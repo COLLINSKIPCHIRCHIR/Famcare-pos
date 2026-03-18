@@ -12,7 +12,21 @@ router.post("/complete", async (req, res) => {
       return res.status(400).json({ error: "Cart is empty or invalid" });
     }
 
-    const invoiceNumber = "INV-" + Date.now();
+   // Get the last invoice number and increment
+const lastInvoice = await pool.query(
+  `SELECT invoice_number FROM sales 
+   WHERE invoice_number LIKE 'FCR/%' 
+   ORDER BY id DESC LIMIT 1`
+);
+
+let nextNumber = 1;
+if (lastInvoice.rows.length > 0) {
+  const lastNum = parseInt(lastInvoice.rows[0].invoice_number.split("/")[1]);
+  if (!isNaN(lastNum)) nextNumber = lastNum + 1;
+}
+
+const year = new Date().getFullYear();
+const invoiceNumber = `FCR/${String(nextNumber).padStart(4, "0")}/${year}`;
 
     const saleResult = await pool.query(
       `INSERT INTO sales (customer_id, total_amount, payment_method, invoice_number)

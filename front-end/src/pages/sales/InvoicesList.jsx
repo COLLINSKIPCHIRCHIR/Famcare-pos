@@ -1,7 +1,9 @@
 // src/pages/sales/InvoicesList.jsx
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import API from "../../utils/api";
+
+const ROWS_PER_PAGE = 10;
 
 export default function InvoicesList() {
   const [invoices, setInvoices] = useState([]);
@@ -9,12 +11,13 @@ export default function InvoicesList() {
   const [filterStatus, setFilterStatus] = useState("all");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchInvoices = async () => {
       try {
-        const res = await axios.get("http://localhost:5003/api/sales/list");
+        const res = await API.get("/sales/list");
         setInvoices(res.data);
       } catch (err) {
         console.error("Error fetching invoices:", err);
@@ -23,7 +26,9 @@ export default function InvoicesList() {
     fetchInvoices();
   }, []);
 
-  // Filter invoices
+  // Reset to page 1 when filters change
+  useEffect(() => { setCurrentPage(1); }, [search, filterStatus, dateFrom, dateTo]);
+
   const filtered = invoices.filter((inv) => {
     const q = search.toLowerCase();
     const matchesSearch =
@@ -50,14 +55,17 @@ export default function InvoicesList() {
     setDateTo("");
   };
 
+  // Pagination calculations
+  const totalPages = Math.ceil(filtered.length / ROWS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ROWS_PER_PAGE;
+  const paginated = filtered.slice(startIndex, startIndex + ROWS_PER_PAGE);
+
   return (
     <div className="bg-white p-6 rounded shadow max-w-4xl mx-auto">
       <h2 className="text-2xl font-bold mb-6">Invoices</h2>
 
       {/* Search and Filter Bar */}
       <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 16 }}>
-
-        {/* Search */}
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
           <input
             type="text"
@@ -71,7 +79,6 @@ export default function InvoicesList() {
           )}
         </div>
 
-        {/* Status Filter */}
         <div style={{ display: "flex", gap: 6 }}>
           {[
             { key: "all", label: "All" },
@@ -94,7 +101,6 @@ export default function InvoicesList() {
           ))}
         </div>
 
-        {/* Date Range */}
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
           <input
             type="date"
@@ -111,7 +117,6 @@ export default function InvoicesList() {
           />
         </div>
 
-        {/* Clear All */}
         {(search || filterStatus !== "all" || dateFrom || dateTo) && (
           <button
             onClick={clearFilters}
@@ -135,18 +140,18 @@ export default function InvoicesList() {
           </tr>
         </thead>
         <tbody>
-          {filtered.length === 0 ? (
+          {paginated.length === 0 ? (
             <tr>
               <td colSpan="7" className="p-4 text-center text-gray-400">
                 No invoices match your search or filter.
               </td>
             </tr>
           ) : (
-            filtered.map((inv, index) => {
+            paginated.map((inv, index) => {
               const isPending = inv.payment_method === "credit" || inv.payment_method === "insurance";
               return (
                 <tr key={inv.id} className="border-t hover:bg-gray-50">
-                  <td className="p-3 border">{index + 1}</td>
+                  <td className="p-3 border">{startIndex + index + 1}</td>
                   <td className="p-3 border font-medium text-blue-600">
                     {inv.invoice_number || `#${inv.id}`}
                   </td>
@@ -179,10 +184,43 @@ export default function InvoicesList() {
         </tbody>
       </table>
 
-      {invoices.length > 0 && (
-        <p style={{ fontSize: 13, color: "#aaa", marginTop: 10 }}>
-          Showing {filtered.length} of {invoices.length} invoices
-        </p>
+      {/* Pagination Bar */}
+      {filtered.length > 0 && (
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 16 }}>
+          <p style={{ fontSize: 13, color: "#aaa" }}>
+            Showing {startIndex + 1}–{Math.min(startIndex + ROWS_PER_PAGE, filtered.length)} of {filtered.length} invoices
+          </p>
+          <div style={{ display: "flex", gap: 6 }}>
+            <button
+              onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+              disabled={currentPage === 1}
+              style={{ padding: "6px 12px", borderRadius: 6, border: "1px solid #ddd", background: "#fff", cursor: "pointer", fontSize: 13, opacity: currentPage === 1 ? 0.3 : 1 }}
+            >
+              ← Prev
+            </button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <button
+                key={page}
+                onClick={() => setCurrentPage(page)}
+                style={{
+                  padding: "6px 12px", borderRadius: 6, border: "1px solid", fontSize: 13, cursor: "pointer",
+                  background: currentPage === page ? "#2563eb" : "#fff",
+                  color: currentPage === page ? "#fff" : "#555",
+                  borderColor: currentPage === page ? "#2563eb" : "#ddd",
+                }}
+              >
+                {page}
+              </button>
+            ))}
+            <button
+              onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              style={{ padding: "6px 12px", borderRadius: 6, border: "1px solid #ddd", background: "#fff", cursor: "pointer", fontSize: 13, opacity: currentPage === totalPages ? 0.3 : 1 }}
+            >
+              Next →
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

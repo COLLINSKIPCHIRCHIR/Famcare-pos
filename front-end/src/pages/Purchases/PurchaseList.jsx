@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import API from "../../utils/api";
 
-const API = "http://localhost:5003/api/purchases";
+const ROWS_PER_PAGE = 10;
 
 export default function PurchaseList() {
   const navigate = useNavigate();
@@ -11,20 +11,37 @@ export default function PurchaseList() {
   const [search, setSearch] = useState("");
   const [expanded, setExpanded] = useState(null);
   const [detail, setDetail] = useState({});
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const tableRef = useRef(null);
 
   useEffect(() => {
-    axios.get(API)
+    API.get("/purchases")
       .then((r) => setPurchases(r.data))
       .catch(() => console.error("Failed to load purchases"))
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => { setCurrentPage(1); }, [search]);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const scrollTable = (direction) => {
+    if (tableRef.current) {
+      tableRef.current.scrollBy({ left: direction === "left" ? -200 : 200, behavior: "smooth" });
+    }
+  };
 
   const toggleExpand = async (id) => {
     if (expanded === id) return setExpanded(null);
     setExpanded(id);
     if (!detail[id]) {
       try {
-        const res = await axios.get(`${API}/${id}`);
+        const res = await API.get(`/purchases/${id}`);
         setDetail((prev) => ({ ...prev, [id]: res.data }));
       } catch {
         console.error("Failed to load purchase details");
@@ -35,6 +52,10 @@ export default function PurchaseList() {
   const filtered = purchases.filter((p) =>
     (p.supplier_name || "").toLowerCase().includes(search.toLowerCase())
   );
+
+  const totalPages = Math.ceil(filtered.length / ROWS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ROWS_PER_PAGE;
+  const paginated = filtered.slice(startIndex, startIndex + ROWS_PER_PAGE);
 
   const totalSpend = purchases.reduce((s, p) => s + parseFloat(p.total_amount || 0), 0);
 
@@ -56,54 +77,103 @@ export default function PurchaseList() {
         ) : filtered.length === 0 ? (
           <div style={styles.center}>{search ? "No purchases match your search." : "No purchases yet."}</div>
         ) : (
-          <div style={styles.list}>
-            {filtered.map((p) => (
-              <div key={p.id} style={styles.card}>
-                <div style={styles.row} onClick={() => toggleExpand(p.id)}>
-                  <div style={styles.avatar}>{(p.supplier_name || "?")[0].toUpperCase()}</div>
-                  <div style={styles.info}>
-                    <div style={styles.supplierName}>{p.supplier_name || "Unknown Supplier"}</div>
-                    <div style={styles.date}>{new Date(p.created_at).toLocaleDateString("en-KE", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}</div>
+          <>
+            <div style={styles.list}>
+              {paginated.map((p) => (
+                <div key={p.id} style={styles.card}>
+                  <div style={styles.row} onClick={() => toggleExpand(p.id)}>
+                    <div style={styles.avatar}>{(p.supplier_name || "?")[0].toUpperCase()}</div>
+                    <div style={styles.info}>
+                      <div style={styles.supplierName}>{p.supplier_name || "Unknown Supplier"}</div>
+                      <div style={styles.date}>{new Date(p.created_at).toLocaleDateString("en-KE", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}</div>
+                    </div>
+                    <div style={styles.amount}>KES {parseFloat(p.total_amount).toLocaleString()}</div>
+                    <div style={styles.chevron}>{expanded === p.id ? "▲" : "▼"}</div>
                   </div>
-                  <div style={styles.amount}>KES {parseFloat(p.total_amount).toLocaleString()}</div>
-                  <div style={styles.chevron}>{expanded === p.id ? "▲" : "▼"}</div>
-                </div>
 
-                {expanded === p.id && (
-                  <div style={styles.itemsWrap}>
-                    {detail[p.id] ? (
-                      detail[p.id].items?.length > 0 ? (
-                        <table style={styles.table}>
-                          <thead>
-                            <tr>
-                              <th style={styles.th}>Product</th>
-                              <th style={styles.th}>Qty</th>
-                              <th style={styles.th}>Unit Price</th>
-                              <th style={styles.th}>Subtotal</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {detail[p.id].items.map((item, i) => (
-                              <tr key={i}>
-                                <td style={styles.td}>{item.product_name || `Product #${item.product_id}`}</td>
-                                <td style={styles.td}>{item.quantity}</td>
-                                <td style={styles.td}>KES {parseFloat(item.price).toLocaleString()}</td>
-                                <td style={styles.td}>KES {(item.quantity * parseFloat(item.price)).toLocaleString()}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
+                  {expanded === p.id && (
+                    <div style={styles.itemsWrap}>
+                      {detail[p.id] ? (
+                        detail[p.id].items?.length > 0 ? (
+                          <div ref={tableRef} style={{ overflowX: "auto" }}>
+                            <table style={{ ...styles.table, minWidth: 480 }}>
+                              <thead>
+                                <tr>
+                                  <th style={styles.th}>Product</th>
+                                  <th style={styles.th}>Qty</th>
+                                  <th style={styles.th}>Unit Price</th>
+                                  <th style={styles.th}>Subtotal</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {detail[p.id].items.map((item, i) => (
+                                  <tr key={i}>
+                                    <td style={styles.td}>{item.product_name || `Product #${item.product_id}`}</td>
+                                    <td style={styles.td}>{item.quantity}</td>
+                                    <td style={styles.td}>KES {parseFloat(item.price).toLocaleString()}</td>
+                                    <td style={styles.td}>KES {(item.quantity * parseFloat(item.price)).toLocaleString()}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        ) : (
+                          <p style={{ color: "#aaa", padding: "12px 0" }}>No items found.</p>
+                        )
                       ) : (
-                        <p style={{ color: "#aaa", padding: "12px 0" }}>No items found.</p>
-                      )
-                    ) : (
-                      <p style={{ color: "#aaa", padding: "12px 0" }}>Loading items...</p>
-                    )}
-                  </div>
-                )}
+                        <p style={{ color: "#aaa", padding: "12px 0" }}>Loading items...</p>
+                      )}
+
+                      {/* Mobile scroll buttons for expanded table */}
+                      {isMobile && detail[p.id]?.items?.length > 0 && (
+                        <div style={{ display: "flex", justifyContent: "center", gap: 12, marginTop: 10 }}>
+                          <button onClick={() => scrollTable("left")} style={styles.scrollBtn}>← Scroll Left</button>
+                          <button onClick={() => scrollTable("right")} style={styles.scrollBtn}>Scroll Right →</button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* Pagination Bar */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 20 }}>
+              <p style={{ fontSize: 13, color: "#aaa" }}>
+                Showing {startIndex + 1}–{Math.min(startIndex + ROWS_PER_PAGE, filtered.length)} of {filtered.length} purchases
+              </p>
+              <div style={{ display: "flex", gap: 6 }}>
+                <button
+                  onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                  disabled={currentPage === 1}
+                  style={{ padding: "6px 12px", borderRadius: 6, border: "1px solid #ddd", background: "#fff", cursor: "pointer", fontSize: 13, opacity: currentPage === 1 ? 0.3 : 1 }}
+                >
+                  ← Prev
+                </button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    style={{
+                      padding: "6px 12px", borderRadius: 6, border: "1px solid", fontSize: 13, cursor: "pointer",
+                      background: currentPage === page ? "#2563eb" : "#fff",
+                      color: currentPage === page ? "#fff" : "#555",
+                      borderColor: currentPage === page ? "#2563eb" : "#ddd",
+                    }}
+                  >
+                    {page}
+                  </button>
+                ))}
+                <button
+                  onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  style={{ padding: "6px 12px", borderRadius: 6, border: "1px solid #ddd", background: "#fff", cursor: "pointer", fontSize: 13, opacity: currentPage === totalPages ? 0.3 : 1 }}
+                >
+                  Next →
+                </button>
               </div>
-            ))}
-          </div>
+            </div>
+          </>
         )}
       </div>
     </div>
@@ -132,4 +202,5 @@ const styles = {
   th: { padding: "8px 12px", textAlign: "left", fontSize: 11, fontWeight: 700, color: "#aaa", textTransform: "uppercase", letterSpacing: 0.5, borderBottom: "1px solid #f0f0f0" },
   td: { padding: "9px 12px", fontSize: 14, color: "#333", borderBottom: "1px solid #f9f9f9" },
   center: { textAlign: "center", color: "#aaa", padding: 60, fontSize: 15 },
+  scrollBtn: { padding: "7px 16px", borderRadius: 8, border: "1px solid #e2e8f0", background: "#f4f6fb", color: "#555", fontSize: 13, fontWeight: 700, cursor: "pointer" },
 };

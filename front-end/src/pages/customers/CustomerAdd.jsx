@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import API from "../../utils/api";
 
 export default function CustomerAdd() {
   const navigate = useNavigate();
@@ -30,13 +30,7 @@ export default function CustomerAdd() {
     }
 
     try {
-      const token = localStorage.getItem("token");
-
-      await axios.post(
-        "http://localhost:5003/api/customers/add",
-        form,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+     await API.post("/customers/add", form);
 
       navigate("/customers/list");
 

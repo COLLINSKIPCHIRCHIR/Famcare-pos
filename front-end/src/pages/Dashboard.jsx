@@ -1,13 +1,13 @@
 // src/pages/Dashboard.jsx
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import axios from "axios";
+import API from "../utils/api";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid,
   ResponsiveContainer, Cell
 } from "recharts";
 
-const BASE = "http://localhost:5003/api/dashboard";
+//const BASE = "http://localhost:5003/api/dashboard";
 const BLUE_SHADES = ["#1e3a5f", "#1d4ed8", "#2563eb", "#3b82f6", "#60a5fa"];
 
 function StatCard({ label, value, sub, icon, bg }) {
@@ -39,11 +39,11 @@ export default function Dashboard() {
   const [lastUpdated, setLastUpdated] = useState(null);
 
   const fetchAll = async () => {
-    try {
-      const [sumRes, topRes] = await Promise.all([
-        axios.get(`${BASE}/summary`),
-        axios.get(`${BASE}/top-products`),
-      ]);
+  try {
+    const [sumRes, topRes] = await Promise.all([
+      API.get("/dashboard/summary"),      // Just use the endpoint name
+      API.get("/dashboard/top-products"), // Just use the endpoint name
+    ]);
       setSummary(sumRes.data);
       setTopProducts(topRes.data.map((p) => ({
         ...p,

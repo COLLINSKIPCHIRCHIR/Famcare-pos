@@ -46,6 +46,35 @@ router.get("/", async (req, res) => {
   }
 });
 
+// EDIT inventory item
+router.put("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, size, quantity, buying_price, selling_price, expiry_date } = req.body;
+
+    const product = await pool.query(
+      `SELECT * FROM inventory WHERE id = $1`, [id]
+    );
+
+    if (product.rows.length === 0)
+      return res.status(404).json({ error: "Product not found" });
+
+    const updated = await pool.query(
+      `UPDATE inventory
+       SET name = $1, size = $2, quantity = $3, buying_price = $4, selling_price = $5, expiry_date = $6
+       WHERE id = $7
+       RETURNING *`,
+      [name, size || "N/A", quantity, buying_price, selling_price, expiry_date || null, id]
+    );
+
+    res.json({ message: "Product updated successfully", product: updated.rows[0] });
+
+  } catch (err) {
+    console.error("🔥 Edit Inventory Error:", err.message);
+    res.status(500).json({ error: "Failed to update product" });
+  }
+});
+
 // DELETE any product permanently (keeps all history)
 router.delete("/:id", async (req, res) => {
   try {

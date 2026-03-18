@@ -1,8 +1,7 @@
+// src/pages/suppliers/SupplierAdd.jsx
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import axios from "axios";
-
-const API = "http://localhost:5000/api/suppliers";
+import API from "../../utils/api";
 
 export default function SupplierAdd() {
   const navigate = useNavigate();
@@ -15,9 +14,11 @@ export default function SupplierAdd() {
 
   useEffect(() => {
     if (isEdit) {
-      axios.get(`${API}/${id}`).then((res) => setForm(res.data)).catch(() => setError("Failed to load supplier"));
+      API.get(`/suppliers/${id}`)
+        .then((res) => setForm(res.data))
+        .catch(() => setError("Failed to load supplier details."));
     }
-  }, [id]);
+  }, [id, isEdit]);
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -25,12 +26,13 @@ export default function SupplierAdd() {
     e.preventDefault();
     setError("");
     if (!form.name.trim()) return setError("Supplier name is required.");
+    
     setLoading(true);
     try {
       if (isEdit) {
-        await axios.put(`${API}/${id}`, form);
+        await API.put(`/suppliers/${id}`, form);
       } else {
-        await axios.post(API, form);
+        await API.post("/suppliers", form);
       }
       navigate("/suppliers");
     } catch (err) {
@@ -41,52 +43,95 @@ export default function SupplierAdd() {
   };
 
   return (
-    <div style={styles.page}>
-      <div style={styles.card}>
-        <div style={styles.header}>
-          <button onClick={() => navigate("/suppliers")} style={styles.backBtn}>← Back</button>
-          <h2 style={styles.title}>{isEdit ? "Edit Supplier" : "Add New Supplier"}</h2>
+    <div className="min-h-screen bg-gray-50 flex items-start justify-center p-10">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 w-full max-w-lg">
+        
+        {/* Header */}
+        <div className="flex items-center gap-4 mb-8">
+          <button 
+            onClick={() => navigate("/suppliers")} 
+            className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-gray-500"
+          >
+            <span className="text-lg">←</span>
+          </button>
+          <h2 className="text-xl font-black text-gray-800 tracking-tight">
+            {isEdit ? "Edit Supplier Info" : "Register New Supplier"}
+          </h2>
         </div>
 
-        {error && <div style={styles.error}>{error}</div>}
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 text-sm font-bold flex items-center gap-2">
+            ⚠️ {error}
+          </div>
+        )}
 
-        <form onSubmit={handleSubmit} style={styles.form}>
-          <div style={styles.field}>
-            <label style={styles.label}>Supplier Name <span style={styles.req}>*</span></label>
-            <input name="name" value={form.name} onChange={handleChange} placeholder="e.g. Bidco Africa" style={styles.input} required />
+        <form onSubmit={handleSubmit} className="space-y-5">
+          {/* Supplier Name */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-black text-gray-400 uppercase tracking-widest">
+              Supplier Name <span className="text-red-500">*</span>
+            </label>
+            <input 
+              name="name" 
+              value={form.name} 
+              onChange={handleChange} 
+              placeholder="e.g. Bidco Africa" 
+              className="w-full p-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all font-medium" 
+              required 
+            />
           </div>
-          <div style={styles.field}>
-            <label style={styles.label}>Phone Number</label>
-            <input name="phone" value={form.phone} onChange={handleChange} placeholder="e.g. 0712 345 678" style={styles.input} />
+
+          {/* Phone Number */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-black text-gray-400 uppercase tracking-widest">Phone Number</label>
+            <input 
+              name="phone" 
+              value={form.phone} 
+              onChange={handleChange} 
+              placeholder="e.g. 0712 345 678" 
+              className="w-full p-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all" 
+            />
           </div>
-          <div style={styles.field}>
-            <label style={styles.label}>Email Address</label>
-            <input name="email" type="email" value={form.email} onChange={handleChange} placeholder="e.g. supplier@company.com" style={styles.input} />
+
+          {/* Email */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-black text-gray-400 uppercase tracking-widest">Email Address</label>
+            <input 
+              name="email" 
+              type="email" 
+              value={form.email} 
+              onChange={handleChange} 
+              placeholder="e.g. contact@supplier.com" 
+              className="w-full p-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all" 
+            />
           </div>
-          <div style={styles.field}>
-            <label style={styles.label}>Physical Address</label>
-            <textarea name="address" value={form.address} onChange={handleChange} placeholder="e.g. Industrial Area, Nairobi" style={{ ...styles.input, height: 80, resize: "vertical" }} />
+
+          {/* Address */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-black text-gray-400 uppercase tracking-widest">Physical Address</label>
+            <textarea 
+              name="address" 
+              value={form.address} 
+              onChange={handleChange} 
+              placeholder="e.g. Industrial Area, Nairobi" 
+              className="w-full p-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all h-24 resize-none" 
+            />
           </div>
-          <button type="submit" style={styles.submitBtn} disabled={loading}>
-            {loading ? "Saving..." : isEdit ? "Update Supplier" : "Save Supplier"}
+
+          {/* Submit Button */}
+          <button 
+            type="submit" 
+            disabled={loading}
+            className={`w-full py-4 rounded-xl font-black text-sm uppercase tracking-widest shadow-lg transition-all active:scale-95 ${
+              loading 
+                ? "bg-gray-200 text-gray-400 cursor-not-allowed" 
+                : "bg-blue-600 text-white hover:bg-blue-700 shadow-blue-200"
+            }`}
+          >
+            {loading ? "Processing..." : isEdit ? "Update Supplier" : "Save Supplier"}
           </button>
         </form>
       </div>
     </div>
   );
 }
-
-const styles = {
-  page: { minHeight: "100vh", background: "#f4f6fb", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "40px 16px" },
-  card: { background: "#fff", borderRadius: 12, boxShadow: "0 2px 16px rgba(0,0,0,0.09)", padding: 36, width: "100%", maxWidth: 520 },
-  header: { display: "flex", alignItems: "center", gap: 16, marginBottom: 28 },
-  backBtn: { background: "none", border: "1px solid #ddd", borderRadius: 8, padding: "6px 14px", cursor: "pointer", fontSize: 14, color: "#555" },
-  title: { margin: 0, fontSize: 20, fontWeight: 700, color: "#1a1a2e" },
-  error: { background: "#fff0f0", border: "1px solid #ffcccc", borderRadius: 8, padding: "10px 14px", color: "#cc0000", marginBottom: 20, fontSize: 14 },
-  form: { display: "flex", flexDirection: "column", gap: 18 },
-  field: { display: "flex", flexDirection: "column", gap: 6 },
-  label: { fontSize: 13, fontWeight: 600, color: "#444" },
-  req: { color: "#e53e3e" },
-  input: { padding: "10px 14px", borderRadius: 8, border: "1.5px solid #e2e8f0", fontSize: 14, outline: "none", fontFamily: "inherit", width: "100%", boxSizing: "border-box" },
-  submitBtn: { background: "#2563eb", color: "#fff", border: "none", borderRadius: 8, padding: "13px", fontSize: 15, fontWeight: 600, cursor: "pointer", marginTop: 8 },
-};

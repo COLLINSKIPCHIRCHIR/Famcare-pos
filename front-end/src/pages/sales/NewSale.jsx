@@ -1,6 +1,6 @@
 // src/pages/sales/NewSale.jsx
 import { useEffect, useState } from "react";
-import axios from "axios";
+import API from "../../utils/api";
 
 export default function NewSale() {
   const [inventory, setInventory] = useState([]);
@@ -17,9 +17,10 @@ export default function NewSale() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        // Using centralized API utility for concurrent fetching
         const [inv, cust] = await Promise.all([
-          axios.get("http://localhost:5003/api/inventory/list"),
-          axios.get("http://localhost:5003/api/customers/list"),
+          API.get("/inventory/list"),
+          API.get("/customers/list"),
         ]);
         setInventory(inv.data || []);
         setCustomers(cust.data || []);
@@ -30,7 +31,7 @@ export default function NewSale() {
     fetchData();
   }, []);
 
-  // Check expiry status of a product
+  // Check expiry status of a product (logic remains untouched)
   const getExpiryStatus = (expiryDate) => {
     if (!expiryDate) return null;
     const today = new Date();
@@ -47,20 +48,17 @@ export default function NewSale() {
     const item = inventory.find((i) => i.id === parseInt(selectedItem));
     if (!item) return;
 
-    // ===== EXPIRY CHECK =====
     const expiry = getExpiryStatus(item.expiry_date);
     if (expiry) {
       if (expiry.status === "expired") {
         setExpiryWarning(`❌ "${item.name}" has expired and cannot be sold. Please remove it from stock.`);
-        return; // BLOCK the sale
+        return; 
       }
       if (expiry.status === "near") {
         setExpiryWarning(`⚠️ Warning: "${item.name}" expires in ${expiry.daysLeft} day(s). Proceed with caution.`);
-        // ALLOW but warn
       }
     }
 
-    // Check stock quantity
     if (parseInt(quantity) > item.quantity) {
       return alert(`Not enough stock. Only ${item.quantity} units available.`);
     }
@@ -84,12 +82,10 @@ export default function NewSale() {
     setQuantity(1);
   };
 
-  // Clear expiry warning when product selection changes
   const handleProductChange = (e) => {
     setExpiryWarning("");
     setSelectedItem(e.target.value);
 
-    // Show expiry info immediately when product is selected
     const item = inventory.find((i) => i.id === parseInt(e.target.value));
     if (item) {
       const expiry = getExpiryStatus(item.expiry_date);
@@ -114,7 +110,6 @@ export default function NewSale() {
     if (!customerId) return alert("Please select a customer");
     if (cart.length === 0) return alert("Cart is empty");
 
-    // Final expiry check on all cart items before completing sale
     for (const cartItem of cart) {
       const expiry = getExpiryStatus(cartItem.expiry_date);
       if (expiry?.status === "expired") {
@@ -124,7 +119,8 @@ export default function NewSale() {
 
     setLoading(true);
     try {
-      const res = await axios.post("http://localhost:5003/api/sales/complete", {
+      // API utility handles headers/token and baseURL automatically
+      const res = await API.post("/sales/complete", {
         cart,
         customer_id: customerId,
         payment_method: paymentMethod,
@@ -151,7 +147,6 @@ export default function NewSale() {
     <div className="bg-white p-6 rounded shadow max-w-2xl mx-auto">
       <h2 className="text-2xl font-bold mb-6">New Sale</h2>
 
-      {/* Customer */}
       <div className="mb-4">
         <label className="block font-bold mb-1">
           Select Customer <span className="text-red-500">*</span>
@@ -168,7 +163,6 @@ export default function NewSale() {
         </select>
       </div>
 
-      {/* Product */}
       <div className="mb-4">
         <label className="block font-bold mb-1">Select Product</label>
         <select
@@ -185,7 +179,6 @@ export default function NewSale() {
         </select>
       </div>
 
-      {/* Expiry Warning Banner */}
       {expiryWarning && (
         <div className={`px-4 py-3 rounded mb-4 font-medium text-sm border ${
           expiryWarning.startsWith("❌")
@@ -196,7 +189,6 @@ export default function NewSale() {
         </div>
       )}
 
-      {/* Quantity + Add */}
       <div className="flex gap-3 mb-6">
         <div className="flex-1">
           <label className="block font-bold mb-1">Quantity</label>
@@ -218,7 +210,6 @@ export default function NewSale() {
         </div>
       </div>
 
-      {/* Cart */}
       <div className="mb-6">
         <h3 className="font-bold mb-2">Cart</h3>
         {cart.length === 0 ? (
@@ -240,7 +231,6 @@ export default function NewSale() {
                   <tr key={item.id} className="border-t hover:bg-gray-50">
                     <td className="p-3">
                       {item.name}
-                      {/* Show near-expiry tag on cart items */}
                       {item.expiry_date && (() => {
                         const expiry = getExpiryStatus(item.expiry_date);
                         if (expiry?.status === "near") {
@@ -282,7 +272,6 @@ export default function NewSale() {
         )}
       </div>
 
-      {/* Payment Method */}
       <div className="mb-4">
         <label className="block font-bold mb-1">Payment Method</label>
         <select
@@ -298,13 +287,11 @@ export default function NewSale() {
         </select>
       </div>
 
-      {/* Total */}
       <div className="flex justify-between items-center p-4 bg-gray-50 rounded border mt-2">
         <span className="text-lg font-bold">Total Amount</span>
         <span className="text-2xl font-bold text-green-600">KES {total.toLocaleString()}</span>
       </div>
 
-      {/* Complete Sale */}
       <button
         onClick={handleCompleteSale}
         disabled={loading}
@@ -313,7 +300,6 @@ export default function NewSale() {
         {loading ? "Processing..." : "✅ Complete Sale"}
       </button>
 
-      {/* Invoice Number Display */}
       {invoiceNumber && (
         <div className="mt-4 p-4 bg-green-50 border-l-4 border-green-500 text-green-700">
           <strong>✅ Sale Complete! Invoice Number:</strong> #{String(invoiceNumber).padStart(5, "0")}

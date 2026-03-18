@@ -1,9 +1,6 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import API from "../../utils/api";
 
-const SUPPLIER_API = "http://localhost:5003/api/suppliers";
-const INVENTORY_API = "http://localhost:5003/api/inventory/list";
-const PURCHASE_API = "http://localhost:5003/api/purchases";
 
 export default function NewPurchase() {
   const [suppliers, setSuppliers] = useState([]);
@@ -18,7 +15,8 @@ export default function NewPurchase() {
 
   const fetchSuppliers = async () => {
     try {
-      const res = await axios.get(SUPPLIER_API);
+      // 2. Use relative path: /suppliers
+      const res = await API.get("/suppliers");
       setSuppliers(res.data);
     } catch (err) {
       console.error("Error fetching suppliers:", err.message);
@@ -27,7 +25,8 @@ export default function NewPurchase() {
 
   const fetchInventory = async () => {
     try {
-      const res = await axios.get(INVENTORY_API);
+      // 3. Use relative path: /inventory/list
+      const res = await API.get("/inventory/list");
       setInventory(res.data);
     } catch (err) {
       console.error("Error fetching inventory:", err.message);
