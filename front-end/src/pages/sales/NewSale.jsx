@@ -107,7 +107,6 @@ export default function NewSale() {
   const total = cart.reduce((sum, item) => sum + item.quantity * item.price, 0);
 
   const handleCompleteSale = async () => {
-    if (!customerId) return alert("Please select a customer");
     if (cart.length === 0) return alert("Cart is empty");
 
     for (const cartItem of cart) {
@@ -122,7 +121,7 @@ export default function NewSale() {
       // API utility handles headers/token and baseURL automatically
       const res = await API.post("/sales/complete", {
         cart,
-        customer_id: customerId,
+        customer_id: customerId || null,
         payment_method: paymentMethod,
         total,
       });
@@ -156,7 +155,7 @@ export default function NewSale() {
           value={customerId}
           onChange={(e) => setCustomerId(e.target.value)}
         >
-          <option value="">Select Customer</option>
+          <option value="">🚶 Walk-in Customer</option>  {/* ← empty string = null */}
           {customers.map((c) => (
             <option key={c.id} value={c.id}>{c.name} — {c.phone}</option>
           ))}

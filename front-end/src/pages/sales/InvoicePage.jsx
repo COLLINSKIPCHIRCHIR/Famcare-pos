@@ -12,6 +12,7 @@ export default function InvoicePage() {
   const [items, setItems] = useState([]);
   const [converting, setConverting] = useState(false);
   const [receiptExists, setReceiptExists] = useState(false);
+  const [dnExists, setDnExists] = useState(false);
   const printRef = useRef();
 
   useEffect(() => {
@@ -35,9 +36,23 @@ export default function InvoicePage() {
       }
     };
 
+    const checkDeliveryNote = async () => {
+      try {
+        const res = await API.get(`/delivery-notes`);
+        const exists = res.data.some((dn) => String(dn.sale_id) === String(id));
+        setDnExists(exists);
+      } catch (err) {
+        console.error("Error checking delivery note:", err);
+      }
+    };
+
+    checkDeliveryNote();
+
     fetchInvoice();
     checkReceipt();
   }, [id]);
+
+
 
   const handlePrint = () => {
     if (!printRef.current) return;
@@ -100,13 +115,13 @@ export default function InvoicePage() {
 
         {/* Title */}
         <div className="text-center mb-8">
-          <h3 className="text-xl font-bold border-b border-gray-300 inline-block px-4 pb-1">INVOICE/DELIVERY NOTE</h3>
+          <h3 className="text-xl font-bold border-b border-gray-300 inline-block px-4 pb-1">INVOICE</h3>
         </div>
 
         {/* Customer & Invoice Meta */}
         <div className="flex justify-between mb-8 text-sm">
           <div className="space-y-1">
-            <p><strong>Customer ID:</strong> {invoice.customer_name?.toUpperCase() || "VALLEY HOSPITAL LTD"}</p>
+            <p><strong>Customer ID:</strong> {invoice.customer_name?.toUpperCase() || "WALK-IN CUSTOMER"}</p>
             <p><strong>Date:</strong> {new Date(invoice.created_at).toLocaleDateString('en-GB')}</p>
           </div>
           <div className="text-right">
@@ -202,6 +217,22 @@ export default function InvoicePage() {
           >
             {converting ? "Converting..." : "🧾 Convert to Receipt"}
           </button>
+        )}
+
+        {/* Delivery Note Button */}
+        {!dnExists && (
+          <button
+            onClick={() => navigate(`/delivery-notes/new?sale_id=${id}`)}
+            className="bg-blue-600 text-white px-8 py-3 rounded-lg font-bold flex items-center gap-2 hover:bg-blue-700"
+          >
+            🚚 Generate Delivery Note
+          </button>
+        )}
+
+        {dnExists && (
+          <span className="bg-blue-50 border border-blue-200 text-blue-700 px-6 py-3 rounded-lg font-semibold text-sm flex items-center">
+            ✅ Delivery Note already generated
+          </span>
         )}
 
         {/* Show message if receipt already exists */}

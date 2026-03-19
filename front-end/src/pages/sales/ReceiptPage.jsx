@@ -83,7 +83,7 @@ export default function ReceiptPage() {
           </div>
           <div className="flex justify-between">
             <span className="text-gray-500 font-medium">Customer:</span>
-            <span className="font-semibold text-gray-900">{receipt.customer_name || "Walk-in"}</span>
+            <span className="font-semibold text-gray-900">{receipt.customer_name || "Walk-in Customer"}</span>
           </div>
           {receipt.customer_phone && (
             <div className="flex justify-between">

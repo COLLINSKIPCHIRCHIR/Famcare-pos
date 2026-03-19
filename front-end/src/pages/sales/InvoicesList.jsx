@@ -155,7 +155,7 @@ export default function InvoicesList() {
                   <td className="p-3 border font-medium text-blue-600">
                     {inv.invoice_number || `#${inv.id}`}
                   </td>
-                  <td className="p-3 border">{inv.customer_name || "—"}</td>
+                  <td className="p-3 border">{inv.customer_name || "Walk-in Customer"}</td>
                   <td className="p-3 border font-semibold">
                     KES {Number(inv.total_amount).toLocaleString()}
                   </td>

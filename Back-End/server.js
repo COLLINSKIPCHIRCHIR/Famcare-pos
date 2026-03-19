@@ -12,7 +12,12 @@ const receiptRoutes = require("./routes/receiptRoutes");
 const supplierRoutes = require("./routes/supplierRoutes");
 const stockMovementRoutes = require("./routes/stockMovementRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
-
+const deliveryNoteRoutes = require("./routes/deliveryNoteRoutes");
+const proformaRoutes     = require("./routes/proformaRoutes");
+const creditNoteRoutes   = require("./routes/creditNoteRoutes");
+const expenseRoutes = require("./routes/expenseRoutes");
+const receivableRoutes = require("./routes/receivableRoutes");
+const reportRoutes = require("./routes/reportRoutes");
 
 
 // Load purchaseRoutes safely
@@ -45,7 +50,13 @@ app.use("/api/suppliers", supplierRoutes);
 console.log("Suppliers registered at /api/suppliers");
 app.use("/api/stock-movements", stockMovementRoutes);
 app.use("/api/dashboard", dashboardRoutes);
-
+app.use("/api/delivery-notes", deliveryNoteRoutes);
+app.use("/api/proforma",       proformaRoutes);
+app.use("/api/credit-notes",   creditNoteRoutes);
+app.use("/api/expenses", expenseRoutes);
+app.use("/api/receivables", receivableRoutes);
+app.use("/api/reports", reportRoutes);
+app.use("/api/expenses", expenseRoutes);
 
 
 // Only register purchases route if it loaded successfully

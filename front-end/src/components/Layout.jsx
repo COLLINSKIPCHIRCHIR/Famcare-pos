@@ -13,6 +13,8 @@ export default function Layout({ children }) {
   const [suppliersOpen, setSuppliersOpen] = useState(false);
   const [purchasesOpen, setPurchasesOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [reportsOpen, setReportsOpen] = useState(false);
+const [expensesOpen, setExpensesOpen] = useState(false);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -112,6 +114,9 @@ export default function Layout({ children }) {
                 <Link to="/sales/list" onClick={handleNavClick} className="hover:bg-blue-600 p-2 rounded">Sales List</Link>
                 <Link to="/sales/invoices" onClick={handleNavClick} className="hover:bg-blue-600 p-2 rounded">Invoices</Link>
                 <Link to="/sales/receipts" onClick={handleNavClick} className="hover:bg-blue-600 p-2 rounded">Receipts</Link>
+                <Link to="/proforma/list" onClick={handleNavClick} className="hover:bg-blue-600 p-2 rounded">Proforma Invoices</Link>
+                <Link to="/delivery-notes/list" onClick={handleNavClick} className="hover:bg-blue-600 p-2 rounded">Delivery Notes</Link>
+                <Link to="/credit-notes/list" onClick={handleNavClick} className="hover:bg-blue-600 p-2 rounded">Credit Notes</Link>
               </div>
             )}
           </div>
@@ -146,6 +151,32 @@ export default function Layout({ children }) {
               <div className="flex flex-col ml-2 mt-1 space-y-1">
                 <Link to="/purchases/new" onClick={handleNavClick} className="hover:bg-blue-600 p-2 rounded">New Purchase</Link>
                 <Link to="/purchases/list" onClick={handleNavClick} className="hover:bg-blue-600 p-2 rounded">Purchase List</Link>
+              </div>
+            )}
+          </div>
+          <div>
+            <button onClick={() => setExpensesOpen(!expensesOpen)}
+              className="hover:bg-blue-700 p-2 w-full text-left rounded flex justify-between items-center">
+              💸 Expenses <span>{expensesOpen ? "▲" : "▼"}</span>
+            </button>
+            {expensesOpen && (
+              <div className="flex flex-col ml-2 mt-1 space-y-1">
+                <Link to="/expenses/add" onClick={handleNavClick} className="hover:bg-blue-600 p-2 rounded">Add Expense</Link>
+                <Link to="/expenses/list" onClick={handleNavClick} className="hover:bg-blue-600 p-2 rounded">Expense List</Link>
+              </div>
+            )}
+          </div>
+
+          <div>
+            <button onClick={() => setReportsOpen(!reportsOpen)}
+              className="hover:bg-blue-700 p-2 w-full text-left rounded flex justify-between items-center">
+              📊 Reports <span>{reportsOpen ? "▲" : "▼"}</span>
+            </button>
+            {reportsOpen && (
+              <div className="flex flex-col ml-2 mt-1 space-y-1">
+                <Link to="/reports/pl" onClick={handleNavClick} className="hover:bg-blue-600 p-2 rounded">P&L Report</Link>
+                <Link to="/reports/vat" onClick={handleNavClick} className="hover:bg-blue-600 p-2 rounded">VAT Report</Link>
+                <Link to="/receivables" onClick={handleNavClick} className="hover:bg-blue-600 p-2 rounded">Accounts Receivable</Link>
               </div>
             )}
           </div>

@@ -18,6 +18,22 @@ import InvoicePage from "./pages/sales/InvoicePage";
 import InventoryAdd from "./pages/inventory/InventoryAdd";
 import InventoryList from "./pages/inventory/InventoryList";
 
+// ================= PROFORMA =================
+import ProformaList   from "./pages/proforma/ProformaList";
+import ProformaCreate from "./pages/proforma/ProformaCreate";
+import ProformaView   from "./pages/proforma/ProformaView";
+
+// ================= DELIVERY NOTES =================
+import DeliveryNoteList from "./pages/deliveryNotes/DeliveryNoteList";
+import DeliveryNoteView from "./pages/deliveryNotes/DeliveryNoteView";
+import DeliveryNoteCreate from "./pages/deliveryNotes/DeliveryNoteCreate";
+
+
+// ================= CREDIT NOTES =================
+import CreditNoteList   from "./pages/creditNotes/CreditNoteList";
+import CreditNoteCreate from "./pages/creditNotes/CreditNoteCreate";
+import CreditNoteView   from "./pages/creditNotes/CreditNoteView";
+
 // ================= CUSTOMER PAGES =================
 import CustomerAdd from "./pages/customers/CustomerAdd";
 import CustomerList from "./pages/customers/CustomerList";
@@ -29,6 +45,13 @@ import SuppliersList from "./pages/Suppliers/SupplierList";
 // ================= PURCHASE PAGES =================
 import PurchaseAdd from "./pages/Purchases/PurchaseAdd";
 import PurchaseList from "./pages/Purchases/PurchaseList";
+
+import ExpenseList    from "./pages/expenses/ExpenseList";
+import ExpenseAdd     from "./pages/expenses/ExpenseAdd";
+import OutstandingList from "./pages/receivables/OutstandingList";
+import PLReport       from "./pages/reports/PLReport";
+import VATReport      from "./pages/reports/VATReport";
+
 
 // ================= USER PAGES =================
 import CreateUser from "./pages/CreateUser";
@@ -61,6 +84,21 @@ function App() {
         <Route path="/sales/receipts" element={<ProtectedRoute><Layout><ReceiptsList /></Layout></ProtectedRoute>} />
         <Route path="/sales/receipts/:id" element={<ProtectedRoute><Layout><ReceiptPage /></Layout></ProtectedRoute>} />
 
+        {/* ================= PROFORMA ================= */}
+        <Route path="/proforma/list" element={<ProtectedRoute><Layout><ProformaList /></Layout></ProtectedRoute>} />
+        <Route path="/proforma/new" element={<ProtectedRoute><Layout><ProformaCreate /></Layout></ProtectedRoute>} />
+        <Route path="/proforma/:id" element={<ProtectedRoute><Layout><ProformaView /></Layout></ProtectedRoute>} />
+
+        {/* ================= DELIVERY NOTES ================= */}
+        <Route path="/delivery-notes/list" element={<ProtectedRoute><Layout><DeliveryNoteList /></Layout></ProtectedRoute>} />
+        <Route path="/delivery-notes/:id" element={<ProtectedRoute><Layout><DeliveryNoteView /></Layout></ProtectedRoute>} />
+        <Route path="/delivery-notes/new" element={<ProtectedRoute><Layout><DeliveryNoteCreate /></Layout></ProtectedRoute>} />
+
+        {/* ================= CREDIT NOTES ================= */}
+        <Route path="/credit-notes/list" element={<ProtectedRoute><Layout><CreditNoteList /></Layout></ProtectedRoute>} />
+        <Route path="/credit-notes/new" element={<ProtectedRoute><Layout><CreditNoteCreate /></Layout></ProtectedRoute>} />
+        <Route path="/credit-notes/:id" element={<ProtectedRoute><Layout><CreditNoteView /></Layout></ProtectedRoute>} />
+
         {/* ================= CUSTOMERS ================= */}
         <Route path="/customers/add" element={<ProtectedRoute><Layout><CustomerAdd /></Layout></ProtectedRoute>} />
         <Route path="/customers/list" element={<ProtectedRoute><Layout><CustomerList /></Layout></ProtectedRoute>} />
@@ -91,6 +129,12 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        <Route path="/expenses/list" element={<ProtectedRoute><Layout><ExpenseList /></Layout></ProtectedRoute>} />
+        <Route path="/expenses/add"  element={<ProtectedRoute><Layout><ExpenseAdd /></Layout></ProtectedRoute>} />
+        <Route path="/receivables"   element={<ProtectedRoute><Layout><OutstandingList /></Layout></ProtectedRoute>} />
+        <Route path="/reports/pl"    element={<ProtectedRoute><Layout><PLReport /></Layout></ProtectedRoute>} />
+        <Route path="/reports/vat"   element={<ProtectedRoute><Layout><VATReport /></Layout></ProtectedRoute>} />
 
         {/* ================= ADMIN ONLY ================= */}
         <Route
