@@ -114,6 +114,9 @@ const [expensesOpen, setExpensesOpen] = useState(false);
                 <Link to="/sales/list" onClick={handleNavClick} className="hover:bg-blue-600 p-2 rounded">Sales List</Link>
                 <Link to="/sales/invoices" onClick={handleNavClick} className="hover:bg-blue-600 p-2 rounded">Invoices</Link>
                 <Link to="/sales/receipts" onClick={handleNavClick} className="hover:bg-blue-600 p-2 rounded">Receipts</Link>
+                <Link to="/estimates/list" onClick={handleNavClick} className="hover:bg-blue-600 p-2 rounded">
+                  Estimates
+                </Link>
                 <Link to="/proforma/list" onClick={handleNavClick} className="hover:bg-blue-600 p-2 rounded">Proforma Invoices</Link>
                 <Link to="/delivery-notes/list" onClick={handleNavClick} className="hover:bg-blue-600 p-2 rounded">Delivery Notes</Link>
                 <Link to="/credit-notes/list" onClick={handleNavClick} className="hover:bg-blue-600 p-2 rounded">Credit Notes</Link>

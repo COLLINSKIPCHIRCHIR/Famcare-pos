@@ -101,7 +101,7 @@ export default function CreditNoteCreate() {
             <option value="">Select a sale...</option>
             {sales.map((s) => (
               <option key={s.id} value={s.id}>
-                {s.invoice_number} — {s.customer_name || "Walk-in"} — KES {Number(s.total_amount).toLocaleString()}
+                {s.invoice_number} — {s.customer_name || "Walk-in Customer"} — KES {Number(s.total_amount).toLocaleString()}
               </option>
             ))}
           </select>

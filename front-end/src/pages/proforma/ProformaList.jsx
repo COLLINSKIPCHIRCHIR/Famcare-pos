@@ -18,10 +18,14 @@ export default function ProformaList() {
       .finally(() => setLoading(false));
   }, []);
 
-  const filtered = proformas.filter((p) =>
-    p.customer_name?.toLowerCase().includes(search.toLowerCase()) ||
-    p.proforma_number?.toLowerCase().includes(search.toLowerCase())
+  const filtered = proformas.filter((p) => {
+  const customerName = p.customer_name || "Walk-in Customer";
+  const q = search.toLowerCase();
+  return (
+    customerName.toLowerCase().includes(q) ||
+    p.proforma_number?.toLowerCase().includes(q)
   );
+});
 
   const totalPages = Math.ceil(filtered.length / ROWS_PER_PAGE);
   const startIndex = (currentPage - 1) * ROWS_PER_PAGE;

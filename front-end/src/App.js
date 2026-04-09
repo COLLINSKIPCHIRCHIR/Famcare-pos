@@ -52,6 +52,11 @@ import OutstandingList from "./pages/receivables/OutstandingList";
 import PLReport       from "./pages/reports/PLReport";
 import VATReport      from "./pages/reports/VATReport";
 
+//estimates
+import EstimateList   from "./pages/estimates/EstimateList";
+import EstimateCreate from "./pages/estimates/EstimateCreate";
+import EstimateView   from "./pages/estimates/EstimateView";
+
 
 // ================= USER PAGES =================
 import CreateUser from "./pages/CreateUser";
@@ -89,6 +94,11 @@ function App() {
         <Route path="/proforma/new" element={<ProtectedRoute><Layout><ProformaCreate /></Layout></ProtectedRoute>} />
         <Route path="/proforma/:id" element={<ProtectedRoute><Layout><ProformaView /></Layout></ProtectedRoute>} />
 
+        {/*====================estimates=================*/}
+        <Route path="/estimates/list" element={<ProtectedRoute><Layout><EstimateList /></Layout></ProtectedRoute>} />
+        <Route path="/estimates/new"  element={<ProtectedRoute><Layout><EstimateCreate /></Layout></ProtectedRoute>} />
+        <Route path="/estimates/:id"  element={<ProtectedRoute><Layout><EstimateView /></Layout></ProtectedRoute>} />
+
         {/* ================= DELIVERY NOTES ================= */}
         <Route path="/delivery-notes/list" element={<ProtectedRoute><Layout><DeliveryNoteList /></Layout></ProtectedRoute>} />
         <Route path="/delivery-notes/:id" element={<ProtectedRoute><Layout><DeliveryNoteView /></Layout></ProtectedRoute>} />
@@ -117,6 +127,9 @@ function App() {
         <Route path="/purchases" element={<Navigate to="/purchases/list" />} />
         <Route path="/purchases/new" element={<ProtectedRoute><Layout><PurchaseAdd /></Layout></ProtectedRoute>} />
         <Route path="/purchases/list" element={<ProtectedRoute><Layout><PurchaseList /></Layout></ProtectedRoute>} />
+
+
+        
 
         {/* ================= STOCK MOVEMENTS ================= */}
         <Route
