@@ -1,6 +1,8 @@
 // src/pages/sales/ReceiptPage.jsx
 import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 import API from "../../utils/api";
 import logo from "../../assets/famcarelogo.png";
 
@@ -9,6 +11,7 @@ export default function ReceiptPage() {
   const navigate = useNavigate();
   const [receipt, setReceipt] = useState(null);
   const [items, setItems] = useState([]);
+  const [downloading, setDownloading] = useState(false);
   const printRef = useRef();
 
   useEffect(() => {
@@ -35,6 +38,39 @@ export default function ReceiptPage() {
     window.location.reload();
   };
 
+  const handleDownload = async () => {
+    if (!printRef.current) return;
+    setDownloading(true);
+    try {
+      const canvas = await html2canvas(printRef.current, { scale: 2, useCORS: true });
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("p", "mm", "a4");
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = pageWidth;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      pdf.save(`Receipt-${String(receipt.id).padStart(5, "0")}.pdf`);
+    } catch (err) {
+      console.error("Failed to generate PDF:", err);
+      alert("Failed to download PDF");
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   if (!receipt) return <p className="p-6 text-center">Loading receipt...</p>;
 
   const totalAmount = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -57,7 +93,7 @@ export default function ReceiptPage() {
   </h1>
 
   <p className="text-sm text-gray-600 mt-1 font-semibold">
-    📞 +254 (0) 773 991 127
+    📞 +254 (0) 773 991 127 / 0726 749 708
   </p>
 
   <p className="text-xs text-gray-400">
@@ -133,7 +169,8 @@ export default function ReceiptPage() {
         <div className="text-center text-xs text-gray-500 border-t border-dashed border-gray-300 pt-4 space-y-1">
           <p className="font-semibold text-gray-700">Thank you for choosing Famcare Rehab & Medical Supplies!</p>
           <p>Goods sold are not returnable unless defective.</p>
-          <p>For inquiries call: +254 (0) 773 991 127</p>
+          <p>For inquiries call: +254 (0) 773 991 127 / 0726 749 708</p>
+          <p>Email: famcarerehab@gmail.com | Web: https://famcareltd.co.ke</p>
           <p className="mt-2 text-gray-400 font-medium">*** This is your official receipt ***</p>
           <p className="mt-3 text-[10px] text-gray-300">System Designed and Developed by Comax Africa</p>
         </div>
@@ -141,12 +178,19 @@ export default function ReceiptPage() {
       </div>
 
       {/* Action Buttons (Hidden on Print) */}
-      <div className="flex gap-3 mt-6 print:hidden">
+      <div className="flex gap-3 mt-6 print:hidden flex-wrap">
         <button
           onClick={handlePrint}
           className="bg-green-600 text-white px-5 py-2 rounded font-bold hover:bg-green-700 transition"
         >
           🖨 Print Receipt
+        </button>
+        <button
+          onClick={handleDownload}
+          disabled={downloading}
+          className="bg-blue-600 text-white px-5 py-2 rounded font-bold hover:bg-blue-700 transition disabled:opacity-50"
+        >
+          {downloading ? "Preparing..." : "⬇️ Download PDF"}
         </button>
         <button
           onClick={() => navigate("/sales/receipts")}

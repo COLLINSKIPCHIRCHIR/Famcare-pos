@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import API from "../../utils/api";
 import useRole from "../../utils/useRole";
+import { notifyInventoryUpdated } from "../../utils/inventoryChannel";
 
 const SIZES = ["N/A", "Extra Small", "Small", "Medium", "Large", "Extra Large", "One Size","XXL"];
 const ROWS_PER_PAGE = 10;
@@ -66,6 +67,7 @@ export default function InventoryList() {
       setDeleteId(null);
       setDeleteName("");
       fetchInventory();
+      notifyInventoryUpdated(); // let any open sale page refresh stock immediately
     } catch (err) {
       alert(err.response?.data?.error || "Failed to delete product");
     } finally {
@@ -91,6 +93,7 @@ export default function InventoryList() {
       await API.put(`/inventory/${editItem.id}`, editForm);
       setEditItem(null);
       fetchInventory();
+      notifyInventoryUpdated(); // let any open sale page refresh stock immediately
     } catch (err) {
       alert(err.response?.data?.error || "Failed to update product");
     } finally {

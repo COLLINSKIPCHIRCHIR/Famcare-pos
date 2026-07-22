@@ -1,6 +1,9 @@
 // src/pages/sales/NewSale.jsx
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import API from "../../utils/api";
+import { subscribeToInventoryUpdates } from "../../utils/inventoryChannel";
+
+const INVENTORY_POLL_INTERVAL_MS = 8000; // background refresh every 8s
 
 export default function NewSale() {
   const [inventory, setInventory] = useState([]);
@@ -13,11 +16,29 @@ export default function NewSale() {
   const [paymentMethod, setPaymentMethod] = useState("cash");
   const [loading, setLoading] = useState(false);
   const [expiryWarning, setExpiryWarning] = useState("");
+  const [stockJustUpdated, setStockJustUpdated] = useState(false);
+
+  // Keep the latest cart in a ref so the polling/broadcast effect (which
+  // only runs once on mount) can safely re-sync cart quantities against
+  // fresh stock without needing `cart` in its dependency array.
+  const cartRef = useRef(cart);
+  useEffect(() => { cartRef.current = cart; }, [cart]);
+
+  // Fetches the current inventory list only — never touches the cart.
+  const refreshInventory = useCallback(async () => {
+    try {
+      const res = await API.get("/inventory/list");
+      setInventory(res.data || []);
+      setStockJustUpdated(true);
+      setTimeout(() => setStockJustUpdated(false), 2000);
+    } catch (err) {
+      console.error("Error refreshing inventory", err);
+    }
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Using centralized API utility for concurrent fetching
         const [inv, cust] = await Promise.all([
           API.get("/inventory/list"),
           API.get("/customers/list"),
@@ -30,6 +51,20 @@ export default function NewSale() {
     };
     fetchData();
   }, []);
+
+  // Background polling: catches stock changes made from ANY device/tab.
+  useEffect(() => {
+    const interval = setInterval(refreshInventory, INVENTORY_POLL_INTERVAL_MS);
+    return () => clearInterval(interval);
+  }, [refreshInventory]);
+
+  // Instant refresh: catches stock changes made from another tab in the
+  // SAME browser (e.g. admin editing InventoryList.jsx) without waiting
+  // for the next poll.
+  useEffect(() => {
+    const unsubscribe = subscribeToInventoryUpdates(refreshInventory);
+    return unsubscribe;
+  }, [refreshInventory]);
 
   // Check expiry status of a product (logic remains untouched)
   const getExpiryStatus = (expiryDate) => {
@@ -100,8 +135,16 @@ export default function NewSale() {
   const removeItem = (id) => setCart(cart.filter((item) => item.id !== id));
 
   const updateQty = (id, val) => {
-    if (val < 1) return;
-    setCart(cart.map((c) => (c.id === id ? { ...c, quantity: parseInt(val) } : c)));
+    const newQty = parseInt(val);
+    if (!newQty || newQty < 1) return;
+
+    const stockItem = inventory.find((i) => i.id === id);
+    if (stockItem && newQty > stockItem.quantity) {
+      alert(`Only ${stockItem.quantity} unit(s) of "${stockItem.name}" are in stock.`);
+      return;
+    }
+
+    setCart(cart.map((c) => (c.id === id ? { ...c, quantity: newQty } : c)));
   };
 
   const total = cart.reduce((sum, item) => sum + item.quantity * item.price, 0);
@@ -134,6 +177,7 @@ export default function NewSale() {
       setCustomerId("");
       setPaymentMethod("cash");
       setExpiryWarning("");
+      refreshInventory(); // stock just changed because of this sale too
     } catch (err) {
       console.error(err);
       alert("Sale failed: " + (err.response?.data?.error || err.message));
@@ -144,7 +188,23 @@ export default function NewSale() {
 
   return (
     <div className="bg-white p-6 rounded shadow max-w-2xl mx-auto">
-      <h2 className="text-2xl font-bold mb-6">New Sale</h2>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold">New Sale</h2>
+        <div className="flex items-center gap-2">
+          {stockJustUpdated && (
+            <span className="text-xs text-green-600 font-semibold animate-pulse">
+              ✓ Stock updated
+            </span>
+          )}
+          <button
+            onClick={refreshInventory}
+            title="Refresh stock now"
+            className="text-xs text-gray-500 hover:text-blue-600 border border-gray-200 rounded px-2 py-1 font-semibold"
+          >
+            🔄 Refresh Stock
+          </button>
+        </div>
+      </div>
 
       <div className="mb-4">
         <label className="block font-bold mb-1">

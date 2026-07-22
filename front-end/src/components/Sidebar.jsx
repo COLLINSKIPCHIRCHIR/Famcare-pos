@@ -8,7 +8,7 @@ export default function Sidebar() {
 
   return (
     <div className="h-screen w-64 bg-gray-800 text-white flex flex-col p-4">
-      <h1 className="text-xl font-bold mb-6">Famcare POS</h1>
+      <h1 className="text-xl font-bold mb-6">Medical POS</h1>
 
       <nav className="flex flex-col space-y-2">
 

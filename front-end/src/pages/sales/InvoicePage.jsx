@@ -1,6 +1,8 @@
 // src/pages/sales/InvoicePage.jsx
 import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 import API from "../../utils/api";
 import logo from "../../assets/famcarelogo.png";
 
@@ -13,6 +15,7 @@ export default function InvoicePage() {
   const [converting, setConverting] = useState(false);
   const [receiptExists, setReceiptExists] = useState(false);
   const [dnExists, setDnExists] = useState(false);
+  const [downloading, setDownloading] = useState(false);
   const printRef = useRef();
 
   useEffect(() => {
@@ -64,6 +67,39 @@ export default function InvoicePage() {
     window.location.reload();
   };
 
+  const handleDownload = async () => {
+    if (!printRef.current) return;
+    setDownloading(true);
+    try {
+      const canvas = await html2canvas(printRef.current, { scale: 2, useCORS: true });
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("p", "mm", "a4");
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = pageWidth;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      pdf.save(`Invoice-${invoice.invoice_number || id}.pdf`);
+    } catch (err) {
+      console.error("Failed to generate PDF:", err);
+      alert("Failed to download PDF");
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   const handleConvertToReceipt = async () => {
     setConverting(true);
     try {
@@ -109,7 +145,7 @@ export default function InvoicePage() {
             <p className="font-bold text-lg">Highway Towers, 4th floor Room 405</p>
             <p className="font-bold text-lg">Nairobi Office:</p>
             <p className="font-bold text-lg">Devt Hse 2nd Flr Room 18</p>
-            <p className="font-bold text-lg">Tel: +254 (0) 773 991 127</p>
+            <p className="font-bold text-lg">Tel: +254 (0) 773 991 127 / 0726 749 708</p>
           </div>
         </div>
 
@@ -197,15 +233,23 @@ export default function InvoicePage() {
 
         {/* Footer info */}
         <div className="mt-16 text-[14px] text-center border-t border-gray-100 pt-4 text-gray-400">
-          Email: famcarerehab@gmail.com/salea@famcare.co.ke | Web: https://famcareltd.co.ke
+          Email: famcarerehab@gmail.com/salea@famcare.co.ke | Web: https://famcareltd.co.ke | Tel: 0726 749 708
           Dealers in:-Sports,Physiotherapy,Occupational,Orthopedic.Laboratory,Medical Equipments and other Consumables
         </div>
       </div>
 
       {/* Action Buttons (Non-Printing) */}
-      <div className="mt-8 flex gap-4 print:hidden">
+      <div className="mt-8 flex gap-4 print:hidden flex-wrap">
         <button onClick={handlePrint} className="bg-gray-800 text-white px-8 py-3 rounded-lg font-bold flex items-center gap-2">
           🖨️ Print Invoice
+        </button>
+
+        <button
+          onClick={handleDownload}
+          disabled={downloading}
+          className="bg-orange-500 text-white px-8 py-3 rounded-lg font-bold flex items-center gap-2 hover:bg-orange-600 disabled:opacity-50"
+        >
+          {downloading ? "Preparing..." : "⬇️ Download PDF"}
         </button>
 
         {/* Convert to Receipt button — only show for cash/mpesa/card and if receipt doesn't exist yet */}

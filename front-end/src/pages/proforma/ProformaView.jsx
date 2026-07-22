@@ -1,5 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 import API from "../../utils/api";
 import logo from "../../assets/famcarelogo.png";
 
@@ -10,6 +12,7 @@ export default function ProformaView() {
   const [proforma, setProforma] = useState(null);
   const [items, setItems]       = useState([]);
   const [converting, setConverting] = useState(false);
+  const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
     API.get(`/proforma/${id}`)
@@ -27,6 +30,39 @@ export default function ProformaView() {
     window.print();
     document.body.innerHTML = original;
     window.location.reload();
+  };
+
+  const handleDownload = async () => {
+    if (!printRef.current) return;
+    setDownloading(true);
+    try {
+      const canvas = await html2canvas(printRef.current, { scale: 2, useCORS: true });
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("p", "mm", "a4");
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = pageWidth;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      pdf.save(`Proforma-${proforma.proforma_number || id}.pdf`);
+    } catch (err) {
+      console.error("Failed to generate PDF:", err);
+      alert("Failed to download PDF");
+    } finally {
+      setDownloading(false);
+    }
   };
 
   const handleConvert = async () => {
@@ -63,7 +99,7 @@ export default function ProformaView() {
             <h2 className="font-bold text-lg">Famcare Rehab & Medical Supplies Ltd.</h2>
             <p className="font-bold">Nakuru Office: Highway Towers, 4th Floor Room 405</p>
             <p className="font-bold">Nairobi Office: Devt Hse 2nd Flr Room 18</p>
-            <p className="font-bold">Tel: +254 (0) 773 991 127</p>
+            <p className="font-bold">Tel: +254 (0) 773 991 127 / 0726 749 708</p>
           </div>
         </div>
 
@@ -141,7 +177,7 @@ export default function ProformaView() {
         </div>
 
         <div className="mt-16 text-[12px] text-center border-t border-gray-100 pt-4 text-gray-400">
-          Email: famcarerehab@gmail.com | Web: https://famcareltd.co.ke
+          Email: famcarerehab@gmail.com | Web: https://famcareltd.co.ke | Tel: 0726 749 708
         </div>
       </div>
 
@@ -149,6 +185,14 @@ export default function ProformaView() {
       <div className="mt-6 flex gap-3 print:hidden flex-wrap">
         <button onClick={handlePrint} className="bg-gray-800 text-white px-6 py-2.5 rounded-lg font-bold hover:bg-gray-900">
           🖨️ Print Proforma
+        </button>
+
+        <button
+          onClick={handleDownload}
+          disabled={downloading}
+          className="bg-orange-500 text-white px-6 py-2.5 rounded-lg font-bold hover:bg-orange-600 disabled:opacity-50"
+        >
+          {downloading ? "Preparing..." : "⬇️ Download PDF"}
         </button>
 
         {proforma.status === "pending" && (
