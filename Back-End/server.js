@@ -19,6 +19,8 @@ const expenseRoutes = require("./routes/expenseRoutes");
 const receivableRoutes = require("./routes/receivableRoutes");
 const reportRoutes = require("./routes/reportRoutes");
 const estimateRoutes = require("./routes/estimateRoutes");
+const patientRoutes = require("./routes/patientRoutes");
+
 
 // Load purchaseRoutes safely
 let purchaseRoutes;
@@ -58,7 +60,7 @@ app.use("/api/receivables", receivableRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/expenses", expenseRoutes);
 app.use("/api/estimates", estimateRoutes);
-
+app.use("/api/patients", patientRoutes);
 
 // Only register purchases route if it loaded successfully
 if (purchaseRoutes) {

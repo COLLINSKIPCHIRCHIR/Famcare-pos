@@ -6,3 +6,7 @@ front-end/node_modules/
 dist
 build
 *.log
+
+node_modules/
+*/node_modules/
+pnpm-lock.yaml

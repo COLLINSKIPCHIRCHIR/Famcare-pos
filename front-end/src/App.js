@@ -57,6 +57,9 @@ import EstimateList   from "./pages/estimates/EstimateList";
 import EstimateCreate from "./pages/estimates/EstimateCreate";
 import EstimateView   from "./pages/estimates/EstimateView";
 
+//patients
+import PatientList from "./pages/patients/PatientList";
+import PatientView from "./pages/patients/PatientView";
 
 // ================= USER PAGES =================
 import CreateUser from "./pages/CreateUser";
@@ -128,6 +131,10 @@ function App() {
         <Route path="/purchases/new" element={<ProtectedRoute><Layout><PurchaseAdd /></Layout></ProtectedRoute>} />
         <Route path="/purchases/list" element={<ProtectedRoute><Layout><PurchaseList /></Layout></ProtectedRoute>} />
 
+
+        {/* ================= Patients ================= */}
+        <Route path="/patients/list" element={<ProtectedRoute><Layout><PatientList /></Layout></ProtectedRoute>} />
+        <Route path="/patients/:id"  element={<ProtectedRoute><Layout><PatientView /></Layout></ProtectedRoute>} />
 
         
 

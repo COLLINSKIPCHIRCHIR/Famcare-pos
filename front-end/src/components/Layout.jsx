@@ -14,7 +14,9 @@ export default function Layout({ children }) {
   const [purchasesOpen, setPurchasesOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [reportsOpen, setReportsOpen] = useState(false);
-const [expensesOpen, setExpensesOpen] = useState(false);
+  const [expensesOpen, setExpensesOpen] = useState(false);
+  const [patientsOpen, setPatientsOpen] = useState(false);
+
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -77,6 +79,22 @@ const [expensesOpen, setExpensesOpen] = useState(false);
               <div className="flex flex-col ml-2 mt-1 space-y-1">
                 <Link to="/customers/add" onClick={handleNavClick} className="hover:bg-blue-600 p-2 rounded">Add Customer</Link>
                 <Link to="/customers/list" onClick={handleNavClick} className="hover:bg-blue-600 p-2 rounded">Customer List</Link>
+              </div>
+            )}
+          </div>
+
+          {/* Patients Dropdown */}
+          <div>
+            <button
+              onClick={() => setPatientsOpen(!patientsOpen)}
+              className="hover:bg-blue-700 p-2 w-full text-left rounded flex justify-between items-center"
+            >
+              🩺 Patients
+              <span>{patientsOpen ? "▲" : "▼"}</span>
+            </button>
+            {patientsOpen && (
+              <div className="flex flex-col ml-2 mt-1 space-y-1">
+                <Link to="/patients/list" onClick={handleNavClick} className="hover:bg-blue-600 p-2 rounded">Patient List</Link>
               </div>
             )}
           </div>
