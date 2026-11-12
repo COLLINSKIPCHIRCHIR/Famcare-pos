@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import API from "../../utils/api";
 
 const ROWS_PER_PAGE = 10;
@@ -92,13 +93,14 @@ export default function CustomerList() {
                     <th className="p-4">Phone Number</th>
                     <th className="p-4">Email</th>
                     <th className="p-4">Joined</th>
+                    <th className="p-4">Statement</th>
                   </tr>
                 </thead>
 
                 <tbody className="divide-y divide-gray-50">
                   {paginated.length === 0 ? (
                     <tr>
-                      <td colSpan="5" className="p-10 text-center text-gray-400 italic">
+                      <td colSpan="6" className="p-10 text-center text-gray-400 italic">
                         {search ? `No results for "${search}"` : "No customers in the database."}
                       </td>
                     </tr>
@@ -111,6 +113,14 @@ export default function CustomerList() {
                         <td className="p-4 text-sm text-blue-500 underline">{customer.email || "—"}</td>
                         <td className="p-4 text-xs text-gray-400 uppercase font-medium">
                           {new Date(customer.created_at).toLocaleDateString('en-GB')}
+                        </td>
+                        <td className="p-4">
+                          <Link
+                            to={`/reports/customer-statement?customer_id=${customer.id}`}
+                            className="text-xs font-bold text-blue-600 hover:text-blue-800 hover:underline"
+                          >
+                            View
+                          </Link>
                         </td>
                       </tr>
                     ))

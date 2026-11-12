@@ -51,6 +51,7 @@ import ExpenseAdd     from "./pages/expenses/ExpenseAdd";
 import OutstandingList from "./pages/receivables/OutstandingList";
 import PLReport       from "./pages/reports/PLReport";
 import VATReport      from "./pages/reports/VATReport";
+import CustomerStatement from "./pages/reports/CustomerStatement";
 
 //estimates
 import EstimateList   from "./pages/estimates/EstimateList";
@@ -155,6 +156,7 @@ function App() {
         <Route path="/receivables"   element={<ProtectedRoute><Layout><OutstandingList /></Layout></ProtectedRoute>} />
         <Route path="/reports/pl"    element={<ProtectedRoute><Layout><PLReport /></Layout></ProtectedRoute>} />
         <Route path="/reports/vat"   element={<ProtectedRoute><Layout><VATReport /></Layout></ProtectedRoute>} />
+        <Route path="/reports/customer-statement" element={<ProtectedRoute><Layout><CustomerStatement /></Layout></ProtectedRoute>} />
 
         {/* ================= ADMIN ONLY ================= */}
         <Route

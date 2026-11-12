@@ -198,6 +198,7 @@ export default function Layout({ children }) {
                 <Link to="/reports/pl" onClick={handleNavClick} className="hover:bg-blue-600 p-2 rounded">P&L Report</Link>
                 <Link to="/reports/vat" onClick={handleNavClick} className="hover:bg-blue-600 p-2 rounded">VAT Report</Link>
                 <Link to="/receivables" onClick={handleNavClick} className="hover:bg-blue-600 p-2 rounded">Accounts Receivable</Link>
+                <Link to="/reports/customer-statement" onClick={handleNavClick} className="hover:bg-blue-600 p-2 rounded">Customer Statement</Link>
               </div>
             )}
           </div>

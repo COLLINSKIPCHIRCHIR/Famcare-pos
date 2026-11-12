@@ -5,25 +5,33 @@ const pool    = require("../db");
 // ── GET ALL OUTSTANDING BALANCES ────────────────────────────────
 router.get("/outstanding", async (req, res) => {
   try {
+    // Credit notes now reduce what the customer owes, so this page agrees with
+    // the Customer Statement report. Correlated subqueries (not extra JOINs) are
+    // used so a sale with several payments AND credit notes isn't double-counted.
     const result = await pool.query(`
-      SELECT
-        s.id AS sale_id,
-        s.invoice_number,
-        s.total_amount,
-        s.created_at,
-        s.payment_method,
-        c.id AS customer_id,
-        c.name AS customer_name,
-        c.phone AS customer_phone,
-        COALESCE(SUM(cp.amount_paid), 0) AS total_paid,
-        s.total_amount - COALESCE(SUM(cp.amount_paid), 0) AS balance
-      FROM sales s
-      LEFT JOIN customers c ON s.customer_id = c.id
-      LEFT JOIN customer_payments cp ON s.id = cp.sale_id
-      WHERE s.payment_method IN ('credit', 'insurance')
-      GROUP BY s.id, c.id
-      HAVING s.total_amount - COALESCE(SUM(cp.amount_paid), 0) > 0
-      ORDER BY s.created_at ASC
+      SELECT * FROM (
+        SELECT
+          s.id AS sale_id,
+          s.invoice_number,
+          s.total_amount,
+          s.created_at,
+          s.payment_method,
+          c.id AS customer_id,
+          c.name AS customer_name,
+          c.phone AS customer_phone,
+          COALESCE((SELECT SUM(cp.amount_paid) FROM customer_payments cp WHERE cp.sale_id = s.id), 0) AS total_paid,
+          COALESCE((SELECT SUM(cn.total_amount) FROM credit_notes cn
+                    WHERE cn.sale_id = s.id AND COALESCE(cn.status, 'issued') <> 'cancelled'), 0) AS total_credited,
+          s.total_amount
+            - COALESCE((SELECT SUM(cp.amount_paid) FROM customer_payments cp WHERE cp.sale_id = s.id), 0)
+            - COALESCE((SELECT SUM(cn.total_amount) FROM credit_notes cn
+                        WHERE cn.sale_id = s.id AND COALESCE(cn.status, 'issued') <> 'cancelled'), 0) AS balance
+        FROM sales s
+        LEFT JOIN customers c ON s.customer_id = c.id
+        WHERE s.payment_method IN ('credit', 'insurance')
+      ) t
+      WHERE t.balance > 0
+      ORDER BY t.created_at ASC
     `);
     res.json(result.rows);
   } catch (err) {
@@ -55,11 +63,12 @@ router.post("/payments", async (req, res) => {
 
     // Check balance remaining
     const balanceRes = await pool.query(`
-      SELECT s.total_amount - COALESCE(SUM(cp.amount_paid), 0) AS balance
+      SELECT s.total_amount
+             - COALESCE((SELECT SUM(cp.amount_paid) FROM customer_payments cp WHERE cp.sale_id = s.id), 0)
+             - COALESCE((SELECT SUM(cn.total_amount) FROM credit_notes cn
+                         WHERE cn.sale_id = s.id AND COALESCE(cn.status, 'issued') <> 'cancelled'), 0) AS balance
       FROM sales s
-      LEFT JOIN customer_payments cp ON s.id = cp.sale_id
       WHERE s.id = $1
-      GROUP BY s.total_amount
     `, [sale_id]);
 
     const balance = parseFloat(balanceRes.rows[0]?.balance || 0);
